@@ -41,3 +41,10 @@ Advanced Persistent Threat (APT) Detection
     Detection Approach: Long-term behavioral analysis and correlation across multiple indicators
     Suggested Model Type: Ensemble of temporal models with long-term memory (LSTM networks)
 
+
+Phishing 	    Classification 	Random Forest + domain features
+Insider Threat 	Profiling 	    UEBA with statistical baselines
+Zero Day 	    Unsupervised 	Deep autoencoders
+APT 	        Multi-temporal 	LSTM networks + ensemble methods
+
+![alt text](image.png)
