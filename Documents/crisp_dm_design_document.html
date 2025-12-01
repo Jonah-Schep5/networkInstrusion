@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="CyberGuard Analytics Data Science Team">
+<meta name="dcterms.date" content="2025-11-30">
+
+<title>CyberGuard Analytics - Network Intrusion Detection System</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="crisp_dm_design_document_files/libs/clipboard/clipboard.min.js"></script>
+<script src="crisp_dm_design_document_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="crisp_dm_design_document_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="crisp_dm_design_document_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="crisp_dm_design_document_files/libs/quarto-html/popper.min.js"></script>
+<script src="crisp_dm_design_document_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="crisp_dm_design_document_files/libs/quarto-html/anchor.min.js"></script>
+<link href="crisp_dm_design_document_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="crisp_dm_design_document_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="crisp_dm_design_document_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="crisp_dm_design_document_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="crisp_dm_design_document_files/libs/bootstrap/bootstrap-b07e303ce93bbbac3323df9503756ef6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#executive-summary" id="toc-executive-summary" class="nav-link active" data-scroll-target="#executive-summary">Executive Summary</a></li>
+  <li><a href="#data-architecture-and-pipeline-design" id="toc-data-architecture-and-pipeline-design" class="nav-link" data-scroll-target="#data-architecture-and-pipeline-design">Data Architecture and Pipeline Design</a>
+  <ul class="collapse">
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#data-sources" id="toc-data-sources" class="nav-link" data-scroll-target="#data-sources">Data Sources</a>
+  <ul class="collapse">
+  <li><a href="#primary-data-source-network_traffic_history-database" id="toc-primary-data-source-network_traffic_history-database" class="nav-link" data-scroll-target="#primary-data-source-network_traffic_history-database">Primary Data Source: NETWORK_TRAFFIC_HISTORY Database</a></li>
+  <li><a href="#data-schema" id="toc-data-schema" class="nav-link" data-scroll-target="#data-schema">Data Schema</a></li>
+  </ul></li>
+  <li><a href="#data-pipeline-architecture" id="toc-data-pipeline-architecture" class="nav-link" data-scroll-target="#data-pipeline-architecture">Data Pipeline Architecture</a>
+  <ul class="collapse">
+  <li><a href="#ingestion-layer" id="toc-ingestion-layer" class="nav-link" data-scroll-target="#ingestion-layer">Ingestion Layer</a></li>
+  <li><a href="#processing-layer" id="toc-processing-layer" class="nav-link" data-scroll-target="#processing-layer">Processing Layer</a></li>
+  <li><a href="#storage-architecture" id="toc-storage-architecture" class="nav-link" data-scroll-target="#storage-architecture">Storage Architecture</a></li>
+  <li><a href="#integration-points" id="toc-integration-points" class="nav-link" data-scroll-target="#integration-points">Integration Points</a></li>
+  </ul></li>
+  <li><a href="#data-flow-diagram" id="toc-data-flow-diagram" class="nav-link" data-scroll-target="#data-flow-diagram">Data Flow Diagram</a></li>
+  </ul></li>
+  <li><a href="#model-architecture-specification" id="toc-model-architecture-specification" class="nav-link" data-scroll-target="#model-architecture-specification">Model Architecture Specification</a>
+  <ul class="collapse">
+  <li><a href="#overview-1" id="toc-overview-1" class="nav-link" data-scroll-target="#overview-1">Overview</a></li>
+  <li><a href="#model-selection-rationale" id="toc-model-selection-rationale" class="nav-link" data-scroll-target="#model-selection-rationale">Model Selection Rationale</a></li>
+  <li><a href="#model-architecture" id="toc-model-architecture" class="nav-link" data-scroll-target="#model-architecture">Model Architecture</a>
+  <ul class="collapse">
+  <li><a href="#apt-advanced-persistent-threat-detection-model" id="toc-apt-advanced-persistent-threat-detection-model" class="nav-link" data-scroll-target="#apt-advanced-persistent-threat-detection-model">1. APT (Advanced Persistent Threat) Detection Model</a></li>
+  <li><a href="#insider-threat-detection-itd-model" id="toc-insider-threat-detection-itd-model" class="nav-link" data-scroll-target="#insider-threat-detection-itd-model">2. Insider Threat Detection (ITD) Model</a></li>
+  <li><a href="#phishing-detection-model" id="toc-phishing-detection-model" class="nav-link" data-scroll-target="#phishing-detection-model">3. Phishing Detection Model</a></li>
+  <li><a href="#zero-day-exploit-detection-model" id="toc-zero-day-exploit-detection-model" class="nav-link" data-scroll-target="#zero-day-exploit-detection-model">4. Zero-day Exploit Detection Model</a></li>
+  </ul></li>
+  <li><a href="#feature-engineering-approach" id="toc-feature-engineering-approach" class="nav-link" data-scroll-target="#feature-engineering-approach">Feature Engineering Approach</a>
+  <ul class="collapse">
+  <li><a href="#categorical-encoding" id="toc-categorical-encoding" class="nav-link" data-scroll-target="#categorical-encoding">Categorical Encoding</a></li>
+  <li><a href="#derived-features" id="toc-derived-features" class="nav-link" data-scroll-target="#derived-features">Derived Features</a></li>
+  <li><a href="#feature-selection" id="toc-feature-selection" class="nav-link" data-scroll-target="#feature-selection">Feature Selection</a></li>
+  </ul></li>
+  <li><a href="#model-training-process" id="toc-model-training-process" class="nav-link" data-scroll-target="#model-training-process">Model Training Process</a>
+  <ul class="collapse">
+  <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation">Data Preparation</a></li>
+  <li><a href="#training-methodology" id="toc-training-methodology" class="nav-link" data-scroll-target="#training-methodology">Training Methodology</a></li>
+  <li><a href="#model-persistence" id="toc-model-persistence" class="nav-link" data-scroll-target="#model-persistence">Model Persistence</a></li>
+  </ul></li>
+  <li><a href="#model-inference-architecture" id="toc-model-inference-architecture" class="nav-link" data-scroll-target="#model-inference-architecture">Model Inference Architecture</a></li>
+  </ul></li>
+  <li><a href="#infrastructure-and-technology-stack" id="toc-infrastructure-and-technology-stack" class="nav-link" data-scroll-target="#infrastructure-and-technology-stack">Infrastructure and Technology Stack</a>
+  <ul class="collapse">
+  <li><a href="#cloud-infrastructure-aws" id="toc-cloud-infrastructure-aws" class="nav-link" data-scroll-target="#cloud-infrastructure-aws">Cloud Infrastructure (AWS)</a>
+  <ul class="collapse">
+  <li><a href="#compute-services" id="toc-compute-services" class="nav-link" data-scroll-target="#compute-services">Compute Services</a></li>
+  <li><a href="#data-services" id="toc-data-services" class="nav-link" data-scroll-target="#data-services">Data Services</a></li>
+  <li><a href="#monitoring-and-logging" id="toc-monitoring-and-logging" class="nav-link" data-scroll-target="#monitoring-and-logging">Monitoring and Logging</a></li>
+  </ul></li>
+  <li><a href="#development-tools" id="toc-development-tools" class="nav-link" data-scroll-target="#development-tools">Development Tools</a>
+  <ul class="collapse">
+  <li><a href="#data-science-environment" id="toc-data-science-environment" class="nav-link" data-scroll-target="#data-science-environment">Data Science Environment</a></li>
+  <li><a href="#database-tools" id="toc-database-tools" class="nav-link" data-scroll-target="#database-tools">Database Tools</a></li>
+  <li><a href="#environment-management" id="toc-environment-management" class="nav-link" data-scroll-target="#environment-management">Environment Management</a></li>
+  </ul></li>
+  <li><a href="#cicd-pipeline" id="toc-cicd-pipeline" class="nav-link" data-scroll-target="#cicd-pipeline">CI/CD Pipeline</a></li>
+  <li><a href="#security-infrastructure" id="toc-security-infrastructure" class="nav-link" data-scroll-target="#security-infrastructure">Security Infrastructure</a></li>
+  </ul></li>
+  <li><a href="#data-quality-and-validation-framework" id="toc-data-quality-and-validation-framework" class="nav-link" data-scroll-target="#data-quality-and-validation-framework">Data Quality and Validation Framework</a>
+  <ul class="collapse">
+  <li><a href="#data-quality-dimensions" id="toc-data-quality-dimensions" class="nav-link" data-scroll-target="#data-quality-dimensions">Data Quality Dimensions</a>
+  <ul class="collapse">
+  <li><a href="#completeness" id="toc-completeness" class="nav-link" data-scroll-target="#completeness">Completeness</a></li>
+  <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">Accuracy</a></li>
+  <li><a href="#consistency" id="toc-consistency" class="nav-link" data-scroll-target="#consistency">Consistency</a></li>
+  <li><a href="#timeliness" id="toc-timeliness" class="nav-link" data-scroll-target="#timeliness">Timeliness</a></li>
+  </ul></li>
+  <li><a href="#data-validation-procedures" id="toc-data-validation-procedures" class="nav-link" data-scroll-target="#data-validation-procedures">Data Validation Procedures</a>
+  <ul class="collapse">
+  <li><a href="#pre-ingestion-validation" id="toc-pre-ingestion-validation" class="nav-link" data-scroll-target="#pre-ingestion-validation">Pre-Ingestion Validation</a></li>
+  <li><a href="#post-processing-validation" id="toc-post-processing-validation" class="nav-link" data-scroll-target="#post-processing-validation">Post-Processing Validation</a></li>
+  </ul></li>
+  <li><a href="#data-quality-monitoring" id="toc-data-quality-monitoring" class="nav-link" data-scroll-target="#data-quality-monitoring">Data Quality Monitoring</a>
+  <ul class="collapse">
+  <li><a href="#automated-monitoring" id="toc-automated-monitoring" class="nav-link" data-scroll-target="#automated-monitoring">Automated Monitoring</a></li>
+  <li><a href="#manual-quality-reviews" id="toc-manual-quality-reviews" class="nav-link" data-scroll-target="#manual-quality-reviews">Manual Quality Reviews</a></li>
+  </ul></li>
+  <li><a href="#data-cleansing-procedures" id="toc-data-cleansing-procedures" class="nav-link" data-scroll-target="#data-cleansing-procedures">Data Cleansing Procedures</a>
+  <ul class="collapse">
+  <li><a href="#automated-cleansing" id="toc-automated-cleansing" class="nav-link" data-scroll-target="#automated-cleansing">Automated Cleansing</a></li>
+  <li><a href="#manual-intervention" id="toc-manual-intervention" class="nav-link" data-scroll-target="#manual-intervention">Manual Intervention</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#security-and-privacy-controls" id="toc-security-and-privacy-controls" class="nav-link" data-scroll-target="#security-and-privacy-controls">Security and Privacy Controls</a>
+  <ul class="collapse">
+  <li><a href="#data-protection-measures" id="toc-data-protection-measures" class="nav-link" data-scroll-target="#data-protection-measures">Data Protection Measures</a>
+  <ul class="collapse">
+  <li><a href="#encryption" id="toc-encryption" class="nav-link" data-scroll-target="#encryption">Encryption</a></li>
+  <li><a href="#access-controls" id="toc-access-controls" class="nav-link" data-scroll-target="#access-controls">Access Controls</a></li>
+  </ul></li>
+  <li><a href="#compliance-requirements" id="toc-compliance-requirements" class="nav-link" data-scroll-target="#compliance-requirements">Compliance Requirements</a>
+  <ul class="collapse">
+  <li><a href="#data-privacy-regulations" id="toc-data-privacy-regulations" class="nav-link" data-scroll-target="#data-privacy-regulations">Data Privacy Regulations</a></li>
+  <li><a href="#industry-standards" id="toc-industry-standards" class="nav-link" data-scroll-target="#industry-standards">Industry Standards</a></li>
+  </ul></li>
+  <li><a href="#privacy-safeguards" id="toc-privacy-safeguards" class="nav-link" data-scroll-target="#privacy-safeguards">Privacy Safeguards</a>
+  <ul class="collapse">
+  <li><a href="#data-anonymization" id="toc-data-anonymization" class="nav-link" data-scroll-target="#data-anonymization">Data Anonymization</a></li>
+  <li><a href="#data-usage-agreements" id="toc-data-usage-agreements" class="nav-link" data-scroll-target="#data-usage-agreements">Data Usage Agreements</a></li>
+  <li><a href="#audit-and-logging" id="toc-audit-and-logging" class="nav-link" data-scroll-target="#audit-and-logging">Audit and Logging</a></li>
+  </ul></li>
+  <li><a href="#ethical-considerations" id="toc-ethical-considerations" class="nav-link" data-scroll-target="#ethical-considerations">Ethical Considerations</a>
+  <ul class="collapse">
+  <li><a href="#bias-mitigation" id="toc-bias-mitigation" class="nav-link" data-scroll-target="#bias-mitigation">Bias Mitigation</a></li>
+  <li><a href="#transparency" id="toc-transparency" class="nav-link" data-scroll-target="#transparency">Transparency</a></li>
+  <li><a href="#responsible-ai" id="toc-responsible-ai" class="nav-link" data-scroll-target="#responsible-ai">Responsible AI</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#deployment-strategy-and-environment-setup" id="toc-deployment-strategy-and-environment-setup" class="nav-link" data-scroll-target="#deployment-strategy-and-environment-setup">Deployment Strategy and Environment Setup</a>
+  <ul class="collapse">
+  <li><a href="#environment-architecture" id="toc-environment-architecture" class="nav-link" data-scroll-target="#environment-architecture">Environment Architecture</a>
+  <ul class="collapse">
+  <li><a href="#development-environment" id="toc-development-environment" class="nav-link" data-scroll-target="#development-environment">Development Environment</a></li>
+  <li><a href="#staging-environment" id="toc-staging-environment" class="nav-link" data-scroll-target="#staging-environment">Staging Environment</a></li>
+  <li><a href="#production-environment" id="toc-production-environment" class="nav-link" data-scroll-target="#production-environment">Production Environment</a></li>
+  </ul></li>
+  <li><a href="#deployment-procedures" id="toc-deployment-procedures" class="nav-link" data-scroll-target="#deployment-procedures">Deployment Procedures</a>
+  <ul class="collapse">
+  <li><a href="#model-deployment-workflow" id="toc-model-deployment-workflow" class="nav-link" data-scroll-target="#model-deployment-workflow">Model Deployment Workflow</a></li>
+  <li><a href="#containerization-strategy" id="toc-containerization-strategy" class="nav-link" data-scroll-target="#containerization-strategy">Containerization Strategy</a></li>
+  <li><a href="#infrastructure-as-code" id="toc-infrastructure-as-code" class="nav-link" data-scroll-target="#infrastructure-as-code">Infrastructure as Code</a></li>
+  </ul></li>
+  <li><a href="#rollback-procedures" id="toc-rollback-procedures" class="nav-link" data-scroll-target="#rollback-procedures">Rollback Procedures</a>
+  <ul class="collapse">
+  <li><a href="#automated-rollback-triggers" id="toc-automated-rollback-triggers" class="nav-link" data-scroll-target="#automated-rollback-triggers">Automated Rollback Triggers</a></li>
+  <li><a href="#rollback-process" id="toc-rollback-process" class="nav-link" data-scroll-target="#rollback-process">Rollback Process</a></li>
+  <li><a href="#rollback-capabilities" id="toc-rollback-capabilities" class="nav-link" data-scroll-target="#rollback-capabilities">Rollback Capabilities</a></li>
+  </ul></li>
+  <li><a href="#infrastructure-provisioning" id="toc-infrastructure-provisioning" class="nav-link" data-scroll-target="#infrastructure-provisioning">Infrastructure Provisioning</a>
+  <ul class="collapse">
+  <li><a href="#automated-provisioning" id="toc-automated-provisioning" class="nav-link" data-scroll-target="#automated-provisioning">Automated Provisioning</a></li>
+  <li><a href="#manual-provisioning" id="toc-manual-provisioning" class="nav-link" data-scroll-target="#manual-provisioning">Manual Provisioning</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#monitoring-and-maintenance-plan" id="toc-monitoring-and-maintenance-plan" class="nav-link" data-scroll-target="#monitoring-and-maintenance-plan">Monitoring and Maintenance Plan</a>
+  <ul class="collapse">
+  <li><a href="#performance-tracking" id="toc-performance-tracking" class="nav-link" data-scroll-target="#performance-tracking">Performance Tracking</a>
+  <ul class="collapse">
+  <li><a href="#model-performance-metrics" id="toc-model-performance-metrics" class="nav-link" data-scroll-target="#model-performance-metrics">Model Performance Metrics</a></li>
+  <li><a href="#system-performance-metrics" id="toc-system-performance-metrics" class="nav-link" data-scroll-target="#system-performance-metrics">System Performance Metrics</a></li>
+  <li><a href="#monitoring-dashboards" id="toc-monitoring-dashboards" class="nav-link" data-scroll-target="#monitoring-dashboards">Monitoring Dashboards</a></li>
+  </ul></li>
+  <li><a href="#model-drift-detection" id="toc-model-drift-detection" class="nav-link" data-scroll-target="#model-drift-detection">Model Drift Detection</a>
+  <ul class="collapse">
+  <li><a href="#data-drift-monitoring" id="toc-data-drift-monitoring" class="nav-link" data-scroll-target="#data-drift-monitoring">Data Drift Monitoring</a></li>
+  <li><a href="#detection-mechanisms" id="toc-detection-mechanisms" class="nav-link" data-scroll-target="#detection-mechanisms">Detection Mechanisms</a></li>
+  </ul></li>
+  <li><a href="#retraining-schedules" id="toc-retraining-schedules" class="nav-link" data-scroll-target="#retraining-schedules">Retraining Schedules</a>
+  <ul class="collapse">
+  <li><a href="#scheduled-retraining" id="toc-scheduled-retraining" class="nav-link" data-scroll-target="#scheduled-retraining">Scheduled Retraining</a></li>
+  <li><a href="#retraining-process" id="toc-retraining-process" class="nav-link" data-scroll-target="#retraining-process">Retraining Process</a></li>
+  <li><a href="#model-versioning" id="toc-model-versioning" class="nav-link" data-scroll-target="#model-versioning">Model Versioning</a></li>
+  </ul></li>
+  <li><a href="#ongoing-maintenance-procedures" id="toc-ongoing-maintenance-procedures" class="nav-link" data-scroll-target="#ongoing-maintenance-procedures">Ongoing Maintenance Procedures</a>
+  <ul class="collapse">
+  <li><a href="#regular-maintenance-tasks" id="toc-regular-maintenance-tasks" class="nav-link" data-scroll-target="#regular-maintenance-tasks">Regular Maintenance Tasks</a></li>
+  <li><a href="#proactive-maintenance" id="toc-proactive-maintenance" class="nav-link" data-scroll-target="#proactive-maintenance">Proactive Maintenance</a></li>
+  <li><a href="#maintenance-windows" id="toc-maintenance-windows" class="nav-link" data-scroll-target="#maintenance-windows">Maintenance Windows</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#testing-and-validation-approach" id="toc-testing-and-validation-approach" class="nav-link" data-scroll-target="#testing-and-validation-approach">Testing and Validation Approach</a>
+  <ul class="collapse">
+  <li><a href="#unit-testing" id="toc-unit-testing" class="nav-link" data-scroll-target="#unit-testing">Unit Testing</a>
+  <ul class="collapse">
+  <li><a href="#model-component-testing" id="toc-model-component-testing" class="nav-link" data-scroll-target="#model-component-testing">Model Component Testing</a></li>
+  <li><a href="#code-quality" id="toc-code-quality" class="nav-link" data-scroll-target="#code-quality">Code Quality</a></li>
+  </ul></li>
+  <li><a href="#integration-testing" id="toc-integration-testing" class="nav-link" data-scroll-target="#integration-testing">Integration Testing</a>
+  <ul class="collapse">
+  <li><a href="#pipeline-integration-tests" id="toc-pipeline-integration-tests" class="nav-link" data-scroll-target="#pipeline-integration-tests">Pipeline Integration Tests</a></li>
+  <li><a href="#system-integration-tests" id="toc-system-integration-tests" class="nav-link" data-scroll-target="#system-integration-tests">System Integration Tests</a></li>
+  </ul></li>
+  <li><a href="#model-validation-methods" id="toc-model-validation-methods" class="nav-link" data-scroll-target="#model-validation-methods">Model Validation Methods</a>
+  <ul class="collapse">
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation">Cross-Validation</a></li>
+  <li><a href="#holdout-validation" id="toc-holdout-validation" class="nav-link" data-scroll-target="#holdout-validation">Holdout Validation</a></li>
+  <li><a href="#temporal-validation" id="toc-temporal-validation" class="nav-link" data-scroll-target="#temporal-validation">Temporal Validation</a></li>
+  <li><a href="#performance-validation" id="toc-performance-validation" class="nav-link" data-scroll-target="#performance-validation">Performance Validation</a></li>
+  </ul></li>
+  <li><a href="#acceptance-criteria" id="toc-acceptance-criteria" class="nav-link" data-scroll-target="#acceptance-criteria">Acceptance Criteria</a>
+  <ul class="collapse">
+  <li><a href="#model-performance-criteria" id="toc-model-performance-criteria" class="nav-link" data-scroll-target="#model-performance-criteria">Model Performance Criteria</a></li>
+  <li><a href="#operational-criteria" id="toc-operational-criteria" class="nav-link" data-scroll-target="#operational-criteria">Operational Criteria</a></li>
+  <li><a href="#business-criteria" id="toc-business-criteria" class="nav-link" data-scroll-target="#business-criteria">Business Criteria</a></li>
+  </ul></li>
+  <li><a href="#test-data-management" id="toc-test-data-management" class="nav-link" data-scroll-target="#test-data-management">Test Data Management</a>
+  <ul class="collapse">
+  <li><a href="#test-data-strategy" id="toc-test-data-strategy" class="nav-link" data-scroll-target="#test-data-strategy">Test Data Strategy</a></li>
+  <li><a href="#test-environment" id="toc-test-environment" class="nav-link" data-scroll-target="#test-environment">Test Environment</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#api-and-interface-specifications" id="toc-api-and-interface-specifications" class="nav-link" data-scroll-target="#api-and-interface-specifications">API and Interface Specifications</a>
+  <ul class="collapse">
+  <li><a href="#model-inference-api" id="toc-model-inference-api" class="nav-link" data-scroll-target="#model-inference-api">Model Inference API</a>
+  <ul class="collapse">
+  <li><a href="#rest-api-endpoints" id="toc-rest-api-endpoints" class="nav-link" data-scroll-target="#rest-api-endpoints">REST API Endpoints</a></li>
+  <li><a href="#batch-prediction-api" id="toc-batch-prediction-api" class="nav-link" data-scroll-target="#batch-prediction-api">Batch Prediction API</a></li>
+  </ul></li>
+  <li><a href="#siemsoar-integration" id="toc-siemsoar-integration" class="nav-link" data-scroll-target="#siemsoar-integration">SIEM/SOAR Integration</a>
+  <ul class="collapse">
+  <li><a href="#splunk-integration" id="toc-splunk-integration" class="nav-link" data-scroll-target="#splunk-integration">Splunk Integration</a></li>
+  <li><a href="#qradar-integration" id="toc-qradar-integration" class="nav-link" data-scroll-target="#qradar-integration">QRadar Integration</a></li>
+  <li><a href="#soar-platform-integration" id="toc-soar-platform-integration" class="nav-link" data-scroll-target="#soar-platform-integration">SOAR Platform Integration</a></li>
+  </ul></li>
+  <li><a href="#client-portal-interface" id="toc-client-portal-interface" class="nav-link" data-scroll-target="#client-portal-interface">Client Portal Interface</a>
+  <ul class="collapse">
+  <li><a href="#dashboard-api" id="toc-dashboard-api" class="nav-link" data-scroll-target="#dashboard-api">Dashboard API</a></li>
+  <li><a href="#alert-management-api" id="toc-alert-management-api" class="nav-link" data-scroll-target="#alert-management-api">Alert Management API</a></li>
+  </ul></li>
+  <li><a href="#data-formats" id="toc-data-formats" class="nav-link" data-scroll-target="#data-formats">Data Formats</a>
+  <ul class="collapse">
+  <li><a href="#input-data-format" id="toc-input-data-format" class="nav-link" data-scroll-target="#input-data-format">Input Data Format</a></li>
+  <li><a href="#output-data-format" id="toc-output-data-format" class="nav-link" data-scroll-target="#output-data-format">Output Data Format</a></li>
+  </ul></li>
+  <li><a href="#communication-protocols" id="toc-communication-protocols" class="nav-link" data-scroll-target="#communication-protocols">Communication Protocols</a>
+  <ul class="collapse">
+  <li><a href="#httphttps" id="toc-httphttps" class="nav-link" data-scroll-target="#httphttps">HTTP/HTTPS</a></li>
+  <li><a href="#message-queue-optional" id="toc-message-queue-optional" class="nav-link" data-scroll-target="#message-queue-optional">Message Queue (Optional)</a></li>
+  <li><a href="#websocket-real-time" id="toc-websocket-real-time" class="nav-link" data-scroll-target="#websocket-real-time">WebSocket (Real-time)</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#scalability-and-performance-considerations" id="toc-scalability-and-performance-considerations" class="nav-link" data-scroll-target="#scalability-and-performance-considerations">Scalability and Performance Considerations</a>
+  <ul class="collapse">
+  <li><a href="#expected-load" id="toc-expected-load" class="nav-link" data-scroll-target="#expected-load">Expected Load</a>
+  <ul class="collapse">
+  <li><a href="#current-estimates" id="toc-current-estimates" class="nav-link" data-scroll-target="#current-estimates">Current Estimates</a></li>
+  <li><a href="#growth-projections" id="toc-growth-projections" class="nav-link" data-scroll-target="#growth-projections">Growth Projections</a></li>
+  </ul></li>
+  <li><a href="#scaling-strategies" id="toc-scaling-strategies" class="nav-link" data-scroll-target="#scaling-strategies">Scaling Strategies</a>
+  <ul class="collapse">
+  <li><a href="#horizontal-scaling" id="toc-horizontal-scaling" class="nav-link" data-scroll-target="#horizontal-scaling">Horizontal Scaling</a></li>
+  <li><a href="#vertical-scaling" id="toc-vertical-scaling" class="nav-link" data-scroll-target="#vertical-scaling">Vertical Scaling</a></li>
+  <li><a href="#caching-strategies" id="toc-caching-strategies" class="nav-link" data-scroll-target="#caching-strategies">Caching Strategies</a></li>
+  </ul></li>
+  <li><a href="#performance-benchmarks" id="toc-performance-benchmarks" class="nav-link" data-scroll-target="#performance-benchmarks">Performance Benchmarks</a>
+  <ul class="collapse">
+  <li><a href="#latency-targets" id="toc-latency-targets" class="nav-link" data-scroll-target="#latency-targets">Latency Targets</a></li>
+  <li><a href="#throughput-targets" id="toc-throughput-targets" class="nav-link" data-scroll-target="#throughput-targets">Throughput Targets</a></li>
+  </ul></li>
+  <li><a href="#resource-optimization" id="toc-resource-optimization" class="nav-link" data-scroll-target="#resource-optimization">Resource Optimization</a>
+  <ul class="collapse">
+  <li><a href="#cost-optimization" id="toc-cost-optimization" class="nav-link" data-scroll-target="#cost-optimization">Cost Optimization</a></li>
+  <li><a href="#performance-tuning" id="toc-performance-tuning" class="nav-link" data-scroll-target="#performance-tuning">Performance Tuning</a></li>
+  </ul></li>
+  <li><a href="#capacity-planning" id="toc-capacity-planning" class="nav-link" data-scroll-target="#capacity-planning">Capacity Planning</a>
+  <ul class="collapse">
+  <li><a href="#monitoring-and-alerts" id="toc-monitoring-and-alerts" class="nav-link" data-scroll-target="#monitoring-and-alerts">Monitoring and Alerts</a></li>
+  <li><a href="#planning-process" id="toc-planning-process" class="nav-link" data-scroll-target="#planning-process">Planning Process</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#risk-mitigation-and-contingency-plans" id="toc-risk-mitigation-and-contingency-plans" class="nav-link" data-scroll-target="#risk-mitigation-and-contingency-plans">Risk Mitigation and Contingency Plans</a>
+  <ul class="collapse">
+  <li><a href="#technical-risks" id="toc-technical-risks" class="nav-link" data-scroll-target="#technical-risks">Technical Risks</a>
+  <ul class="collapse">
+  <li><a href="#model-performance-degradation" id="toc-model-performance-degradation" class="nav-link" data-scroll-target="#model-performance-degradation">Model Performance Degradation</a></li>
+  <li><a href="#data-quality-issues" id="toc-data-quality-issues" class="nav-link" data-scroll-target="#data-quality-issues">Data Quality Issues</a></li>
+  <li><a href="#infrastructure-failures" id="toc-infrastructure-failures" class="nav-link" data-scroll-target="#infrastructure-failures">Infrastructure Failures</a></li>
+  <li><a href="#integration-failures" id="toc-integration-failures" class="nav-link" data-scroll-target="#integration-failures">Integration Failures</a></li>
+  </ul></li>
+  <li><a href="#data-and-security-risks" id="toc-data-and-security-risks" class="nav-link" data-scroll-target="#data-and-security-risks">Data and Security Risks</a>
+  <ul class="collapse">
+  <li><a href="#data-breach" id="toc-data-breach" class="nav-link" data-scroll-target="#data-breach">Data Breach</a></li>
+  <li><a href="#compliance-violations" id="toc-compliance-violations" class="nav-link" data-scroll-target="#compliance-violations">Compliance Violations</a></li>
+  </ul></li>
+  <li><a href="#business-risks" id="toc-business-risks" class="nav-link" data-scroll-target="#business-risks">Business Risks</a>
+  <ul class="collapse">
+  <li><a href="#project-delays" id="toc-project-delays" class="nav-link" data-scroll-target="#project-delays">Project Delays</a></li>
+  <li><a href="#budget-overruns" id="toc-budget-overruns" class="nav-link" data-scroll-target="#budget-overruns">Budget Overruns</a></li>
+  </ul></li>
+  <li><a href="#failure-scenarios" id="toc-failure-scenarios" class="nav-link" data-scroll-target="#failure-scenarios">Failure Scenarios</a>
+  <ul class="collapse">
+  <li><a href="#complete-system-failure" id="toc-complete-system-failure" class="nav-link" data-scroll-target="#complete-system-failure">Complete System Failure</a></li>
+  <li><a href="#model-failure" id="toc-model-failure" class="nav-link" data-scroll-target="#model-failure">Model Failure</a></li>
+  <li><a href="#data-pipeline-failure" id="toc-data-pipeline-failure" class="nav-link" data-scroll-target="#data-pipeline-failure">Data Pipeline Failure</a></li>
+  </ul></li>
+  <li><a href="#risk-monitoring" id="toc-risk-monitoring" class="nav-link" data-scroll-target="#risk-monitoring">Risk Monitoring</a>
+  <ul class="collapse">
+  <li><a href="#risk-register" id="toc-risk-register" class="nav-link" data-scroll-target="#risk-register">Risk Register</a></li>
+  <li><a href="#risk-reporting" id="toc-risk-reporting" class="nav-link" data-scroll-target="#risk-reporting">Risk Reporting</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#pilot-phase-implementation-plan" id="toc-pilot-phase-implementation-plan" class="nav-link" data-scroll-target="#pilot-phase-implementation-plan">Pilot Phase Implementation Plan</a>
+  <ul class="collapse">
+  <li><a href="#pilot-scope" id="toc-pilot-scope" class="nav-link" data-scroll-target="#pilot-scope">Pilot Scope</a>
+  <ul class="collapse">
+  <li><a href="#target-user-groups" id="toc-target-user-groups" class="nav-link" data-scroll-target="#target-user-groups">Target User Groups</a></li>
+  <li><a href="#limited-feature-sets" id="toc-limited-feature-sets" class="nav-link" data-scroll-target="#limited-feature-sets">Limited Feature Sets</a></li>
+  <li><a href="#data-subsets" id="toc-data-subsets" class="nav-link" data-scroll-target="#data-subsets">Data Subsets</a></li>
+  </ul></li>
+  <li><a href="#pilot-timeline" id="toc-pilot-timeline" class="nav-link" data-scroll-target="#pilot-timeline">Pilot Timeline</a>
+  <ul class="collapse">
+  <li><a href="#phase-1-preparation-2-weeks" id="toc-phase-1-preparation-2-weeks" class="nav-link" data-scroll-target="#phase-1-preparation-2-weeks">Phase 1: Preparation (2 weeks)</a></li>
+  <li><a href="#phase-2-soft-launch-1-week" id="toc-phase-2-soft-launch-1-week" class="nav-link" data-scroll-target="#phase-2-soft-launch-1-week">Phase 2: Soft Launch (1 week)</a></li>
+  <li><a href="#phase-3-active-pilot-4-weeks" id="toc-phase-3-active-pilot-4-weeks" class="nav-link" data-scroll-target="#phase-3-active-pilot-4-weeks">Phase 3: Active Pilot (4 weeks)</a></li>
+  <li><a href="#phase-4-evaluation-1-week" id="toc-phase-4-evaluation-1-week" class="nav-link" data-scroll-target="#phase-4-evaluation-1-week">Phase 4: Evaluation (1 week)</a></li>
+  </ul></li>
+  <li><a href="#success-metrics" id="toc-success-metrics" class="nav-link" data-scroll-target="#success-metrics">Success Metrics</a>
+  <ul class="collapse">
+  <li><a href="#technical-metrics" id="toc-technical-metrics" class="nav-link" data-scroll-target="#technical-metrics">Technical Metrics</a></li>
+  <li><a href="#business-metrics" id="toc-business-metrics" class="nav-link" data-scroll-target="#business-metrics">Business Metrics</a></li>
+  </ul></li>
+  <li><a href="#rollback-procedures-1" id="toc-rollback-procedures-1" class="nav-link" data-scroll-target="#rollback-procedures-1">Rollback Procedures</a>
+  <ul class="collapse">
+  <li><a href="#automatic-rollback-triggers" id="toc-automatic-rollback-triggers" class="nav-link" data-scroll-target="#automatic-rollback-triggers">Automatic Rollback Triggers</a></li>
+  <li><a href="#manual-rollback-process" id="toc-manual-rollback-process" class="nav-link" data-scroll-target="#manual-rollback-process">Manual Rollback Process</a></li>
+  <li><a href="#rollback-criteria" id="toc-rollback-criteria" class="nav-link" data-scroll-target="#rollback-criteria">Rollback Criteria</a></li>
+  </ul></li>
+  <li><a href="#criteria-for-advancing-to-production" id="toc-criteria-for-advancing-to-production" class="nav-link" data-scroll-target="#criteria-for-advancing-to-production">Criteria for Advancing to Production</a>
+  <ul class="collapse">
+  <li><a href="#technical-criteria" id="toc-technical-criteria" class="nav-link" data-scroll-target="#technical-criteria">Technical Criteria</a></li>
+  <li><a href="#business-criteria-1" id="toc-business-criteria-1" class="nav-link" data-scroll-target="#business-criteria-1">Business Criteria</a></li>
+  <li><a href="#gono-go-decision" id="toc-gono-go-decision" class="nav-link" data-scroll-target="#gono-go-decision">Go/No-Go Decision</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#pilot-phase-business-value-estimation" id="toc-pilot-phase-business-value-estimation" class="nav-link" data-scroll-target="#pilot-phase-business-value-estimation">Pilot Phase Business Value Estimation</a>
+  <ul class="collapse">
+  <li><a href="#baseline-measurements" id="toc-baseline-measurements" class="nav-link" data-scroll-target="#baseline-measurements">Baseline Measurements</a>
+  <ul class="collapse">
+  <li><a href="#current-state-metrics" id="toc-current-state-metrics" class="nav-link" data-scroll-target="#current-state-metrics">Current State Metrics</a></li>
+  </ul></li>
+  <li><a href="#projected-improvements" id="toc-projected-improvements" class="nav-link" data-scroll-target="#projected-improvements">Projected Improvements</a>
+  <ul class="collapse">
+  <li><a href="#detection-performance-improvements" id="toc-detection-performance-improvements" class="nav-link" data-scroll-target="#detection-performance-improvements">Detection Performance Improvements</a></li>
+  <li><a href="#operational-efficiency-gains" id="toc-operational-efficiency-gains" class="nav-link" data-scroll-target="#operational-efficiency-gains">Operational Efficiency Gains</a></li>
+  <li><a href="#business-impact" id="toc-business-impact" class="nav-link" data-scroll-target="#business-impact">Business Impact</a></li>
+  </ul></li>
+  <li><a href="#risk-adjusted-value-calculations" id="toc-risk-adjusted-value-calculations" class="nav-link" data-scroll-target="#risk-adjusted-value-calculations">Risk-Adjusted Value Calculations</a>
+  <ul class="collapse">
+  <li><a href="#revenue-impact" id="toc-revenue-impact" class="nav-link" data-scroll-target="#revenue-impact">Revenue Impact</a></li>
+  <li><a href="#cost-savings" id="toc-cost-savings" class="nav-link" data-scroll-target="#cost-savings">Cost Savings</a></li>
+  <li><a href="#pilot-phase-roi" id="toc-pilot-phase-roi" class="nav-link" data-scroll-target="#pilot-phase-roi">Pilot Phase ROI</a></li>
+  </ul></li>
+  <li><a href="#methodology-for-measuring-outcomes" id="toc-methodology-for-measuring-outcomes" class="nav-link" data-scroll-target="#methodology-for-measuring-outcomes">Methodology for Measuring Outcomes</a>
+  <ul class="collapse">
+  <li><a href="#measurement-framework" id="toc-measurement-framework" class="nav-link" data-scroll-target="#measurement-framework">Measurement Framework</a></li>
+  <li><a href="#key-performance-indicators" id="toc-key-performance-indicators" class="nav-link" data-scroll-target="#key-performance-indicators">Key Performance Indicators</a></li>
+  <li><a href="#comparison-methodology" id="toc-comparison-methodology" class="nav-link" data-scroll-target="#comparison-methodology">Comparison Methodology</a></li>
+  <li><a href="#reporting" id="toc-reporting" class="nav-link" data-scroll-target="#reporting">Reporting</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#production-phase-implementation-plan" id="toc-production-phase-implementation-plan" class="nav-link" data-scroll-target="#production-phase-implementation-plan">Production Phase Implementation Plan</a>
+  <ul class="collapse">
+  <li><a href="#phased-rollout-strategy" id="toc-phased-rollout-strategy" class="nav-link" data-scroll-target="#phased-rollout-strategy">Phased Rollout Strategy</a>
+  <ul class="collapse">
+  <li><a href="#phase-1-foundation-weeks-1-4" id="toc-phase-1-foundation-weeks-1-4" class="nav-link" data-scroll-target="#phase-1-foundation-weeks-1-4">Phase 1: Foundation (Weeks 1-4)</a></li>
+  <li><a href="#phase-2-limited-production-weeks-5-8" id="toc-phase-2-limited-production-weeks-5-8" class="nav-link" data-scroll-target="#phase-2-limited-production-weeks-5-8">Phase 2: Limited Production (Weeks 5-8)</a></li>
+  <li><a href="#phase-3-full-production-weeks-9-12" id="toc-phase-3-full-production-weeks-9-12" class="nav-link" data-scroll-target="#phase-3-full-production-weeks-9-12">Phase 3: Full Production (Weeks 9-12)</a></li>
+  </ul></li>
+  <li><a href="#user-onboarding-procedures" id="toc-user-onboarding-procedures" class="nav-link" data-scroll-target="#user-onboarding-procedures">User Onboarding Procedures</a>
+  <ul class="collapse">
+  <li><a href="#client-onboarding-process" id="toc-client-onboarding-process" class="nav-link" data-scroll-target="#client-onboarding-process">Client Onboarding Process</a></li>
+  <li><a href="#training-delivery" id="toc-training-delivery" class="nav-link" data-scroll-target="#training-delivery">Training Delivery</a></li>
+  </ul></li>
+  <li><a href="#change-management-protocols" id="toc-change-management-protocols" class="nav-link" data-scroll-target="#change-management-protocols">Change Management Protocols</a>
+  <ul class="collapse">
+  <li><a href="#communication-strategy" id="toc-communication-strategy" class="nav-link" data-scroll-target="#communication-strategy">Communication Strategy</a></li>
+  <li><a href="#change-control-process" id="toc-change-control-process" class="nav-link" data-scroll-target="#change-control-process">Change Control Process</a></li>
+  <li><a href="#rollback-procedures-2" id="toc-rollback-procedures-2" class="nav-link" data-scroll-target="#rollback-procedures-2">Rollback Procedures</a></li>
+  </ul></li>
+  <li><a href="#system-cutover-activities" id="toc-system-cutover-activities" class="nav-link" data-scroll-target="#system-cutover-activities">System Cutover Activities</a>
+  <ul class="collapse">
+  <li><a href="#cutover-planning" id="toc-cutover-planning" class="nav-link" data-scroll-target="#cutover-planning">Cutover Planning</a></li>
+  <li><a href="#cutover-checklist" id="toc-cutover-checklist" class="nav-link" data-scroll-target="#cutover-checklist">Cutover Checklist</a></li>
+  </ul></li>
+  <li><a href="#production-infrastructure-scaling" id="toc-production-infrastructure-scaling" class="nav-link" data-scroll-target="#production-infrastructure-scaling">Production Infrastructure Scaling</a>
+  <ul class="collapse">
+  <li><a href="#infrastructure-requirements" id="toc-infrastructure-requirements" class="nav-link" data-scroll-target="#infrastructure-requirements">Infrastructure Requirements</a></li>
+  <li><a href="#scaling-triggers" id="toc-scaling-triggers" class="nav-link" data-scroll-target="#scaling-triggers">Scaling Triggers</a></li>
+  </ul></li>
+  <li><a href="#data-migration-procedures" id="toc-data-migration-procedures" class="nav-link" data-scroll-target="#data-migration-procedures">Data Migration Procedures</a>
+  <ul class="collapse">
+  <li><a href="#migration-strategy" id="toc-migration-strategy" class="nav-link" data-scroll-target="#migration-strategy">Migration Strategy</a></li>
+  <li><a href="#migration-validation" id="toc-migration-validation" class="nav-link" data-scroll-target="#migration-validation">Migration Validation</a></li>
+  </ul></li>
+  <li><a href="#user-access-provisioning" id="toc-user-access-provisioning" class="nav-link" data-scroll-target="#user-access-provisioning">User Access Provisioning</a>
+  <ul class="collapse">
+  <li><a href="#access-management" id="toc-access-management" class="nav-link" data-scroll-target="#access-management">Access Management</a></li>
+  <li><a href="#access-types" id="toc-access-types" class="nav-link" data-scroll-target="#access-types">Access Types</a></li>
+  </ul></li>
+  <li><a href="#training-delivery-timelines" id="toc-training-delivery-timelines" class="nav-link" data-scroll-target="#training-delivery-timelines">Training Delivery Timelines</a>
+  <ul class="collapse">
+  <li><a href="#training-schedule" id="toc-training-schedule" class="nav-link" data-scroll-target="#training-schedule">Training Schedule</a></li>
+  </ul></li>
+  <li><a href="#communication-strategies" id="toc-communication-strategies" class="nav-link" data-scroll-target="#communication-strategies">Communication Strategies</a>
+  <ul class="collapse">
+  <li><a href="#internal-communication" id="toc-internal-communication" class="nav-link" data-scroll-target="#internal-communication">Internal Communication</a></li>
+  <li><a href="#client-communication" id="toc-client-communication" class="nav-link" data-scroll-target="#client-communication">Client Communication</a></li>
+  <li><a href="#organization-wide-adoption" id="toc-organization-wide-adoption" class="nav-link" data-scroll-target="#organization-wide-adoption">Organization-Wide Adoption</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#post-production-monitoring-plan" id="toc-post-production-monitoring-plan" class="nav-link" data-scroll-target="#post-production-monitoring-plan">Post-Production Monitoring Plan</a>
+  <ul class="collapse">
+  <li><a href="#automated-monitoring-dashboards" id="toc-automated-monitoring-dashboards" class="nav-link" data-scroll-target="#automated-monitoring-dashboards">Automated Monitoring Dashboards</a>
+  <ul class="collapse">
+  <li><a href="#real-time-dashboards" id="toc-real-time-dashboards" class="nav-link" data-scroll-target="#real-time-dashboards">Real-Time Dashboards</a></li>
+  <li><a href="#custom-dashboards" id="toc-custom-dashboards" class="nav-link" data-scroll-target="#custom-dashboards">Custom Dashboards</a></li>
+  </ul></li>
+  <li><a href="#alert-systems" id="toc-alert-systems" class="nav-link" data-scroll-target="#alert-systems">Alert Systems</a>
+  <ul class="collapse">
+  <li><a href="#alert-configuration" id="toc-alert-configuration" class="nav-link" data-scroll-target="#alert-configuration">Alert Configuration</a></li>
+  <li><a href="#alert-thresholds" id="toc-alert-thresholds" class="nav-link" data-scroll-target="#alert-thresholds">Alert Thresholds</a></li>
+  </ul></li>
+  <li><a href="#performance-tracking-mechanisms" id="toc-performance-tracking-mechanisms" class="nav-link" data-scroll-target="#performance-tracking-mechanisms">Performance Tracking Mechanisms</a>
+  <ul class="collapse">
+  <li><a href="#model-performance-monitoring" id="toc-model-performance-monitoring" class="nav-link" data-scroll-target="#model-performance-monitoring">Model Performance Monitoring</a></li>
+  <li><a href="#system-performance-monitoring" id="toc-system-performance-monitoring" class="nav-link" data-scroll-target="#system-performance-monitoring">System Performance Monitoring</a></li>
+  </ul></li>
+  <li><a href="#model-performance-degradation-detection" id="toc-model-performance-degradation-detection" class="nav-link" data-scroll-target="#model-performance-degradation-detection">Model Performance Degradation Detection</a>
+  <ul class="collapse">
+  <li><a href="#detection-mechanisms-1" id="toc-detection-mechanisms-1" class="nav-link" data-scroll-target="#detection-mechanisms-1">Detection Mechanisms</a></li>
+  <li><a href="#degradation-response" id="toc-degradation-response" class="nav-link" data-scroll-target="#degradation-response">Degradation Response</a></li>
+  </ul></li>
+  <li><a href="#data-quality-monitoring-1" id="toc-data-quality-monitoring-1" class="nav-link" data-scroll-target="#data-quality-monitoring-1">Data Quality Monitoring</a>
+  <ul class="collapse">
+  <li><a href="#quality-metrics" id="toc-quality-metrics" class="nav-link" data-scroll-target="#quality-metrics">Quality Metrics</a></li>
+  <li><a href="#quality-alerts" id="toc-quality-alerts" class="nav-link" data-scroll-target="#quality-alerts">Quality Alerts</a></li>
+  </ul></li>
+  <li><a href="#business-impact-measurement" id="toc-business-impact-measurement" class="nav-link" data-scroll-target="#business-impact-measurement">Business Impact Measurement</a>
+  <ul class="collapse">
+  <li><a href="#business-metrics-1" id="toc-business-metrics-1" class="nav-link" data-scroll-target="#business-metrics-1">Business Metrics</a></li>
+  <li><a href="#impact-reporting" id="toc-impact-reporting" class="nav-link" data-scroll-target="#impact-reporting">Impact Reporting</a></li>
+  </ul></li>
+  <li><a href="#ongoing-maintenance-procedures-1" id="toc-ongoing-maintenance-procedures-1" class="nav-link" data-scroll-target="#ongoing-maintenance-procedures-1">Ongoing Maintenance Procedures</a>
+  <ul class="collapse">
+  <li><a href="#regular-maintenance" id="toc-regular-maintenance" class="nav-link" data-scroll-target="#regular-maintenance">Regular Maintenance</a></li>
+  <li><a href="#proactive-maintenance-1" id="toc-proactive-maintenance-1" class="nav-link" data-scroll-target="#proactive-maintenance-1">Proactive Maintenance</a></li>
+  </ul></li>
+  <li><a href="#maintenance-schedule" id="toc-maintenance-schedule" class="nav-link" data-scroll-target="#maintenance-schedule">Maintenance Schedule</a>
+  <ul class="collapse">
+  <li><a href="#scheduled-maintenance-windows" id="toc-scheduled-maintenance-windows" class="nav-link" data-scroll-target="#scheduled-maintenance-windows">Scheduled Maintenance Windows</a></li>
+  <li><a href="#emergency-maintenance" id="toc-emergency-maintenance" class="nav-link" data-scroll-target="#emergency-maintenance">Emergency Maintenance</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#appendices" id="toc-appendices" class="nav-link" data-scroll-target="#appendices">Appendices</a>
+  <ul class="collapse">
+  <li><a href="#appendix-a-glossary" id="toc-appendix-a-glossary" class="nav-link" data-scroll-target="#appendix-a-glossary">Appendix A: Glossary</a></li>
+  <li><a href="#appendix-b-references" id="toc-appendix-b-references" class="nav-link" data-scroll-target="#appendix-b-references">Appendix B: References</a></li>
+  <li><a href="#appendix-c-document-version-history" id="toc-appendix-c-document-version-history" class="nav-link" data-scroll-target="#appendix-c-document-version-history">Appendix C: Document Version History</a></li>
+  </ul></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="crisp_dm_design_document.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">CyberGuard Analytics - Network Intrusion Detection System</h1>
+<p class="subtitle lead">CRISP-DM Design Document</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>CyberGuard Analytics Data Science Team </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 30, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="executive-summary" class="level1">
+<h1>Executive Summary</h1>
+<p>This document outlines the comprehensive design for CyberGuard Analytics’ specialized network intrusion detection system. The project focuses on developing four specialized anomaly detection models targeting Advanced Persistent Threats (APT), Insider Threat Detection (ITD), Phishing, and Zero-day exploits. The system leverages XGBoost machine learning models deployed on AWS infrastructure to provide real-time threat detection capabilities.</p>
+<p><strong>Project Objectives:</strong> - Reduce Mean Time to Detect (MTTD) by 50% per attack type - Maintain False Positive Rate below 2% - Achieve 18-22% ROI within 3 years - Integrate seamlessly with existing SIEM/SOAR platforms</p>
+</section>
+<section id="data-architecture-and-pipeline-design" class="level1">
+<h1>Data Architecture and Pipeline Design</h1>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>The data architecture is built on AWS cloud infrastructure with PostgreSQL as the primary data store. The system processes network flow data from multiple enterprise clients in real-time and batch modes.</p>
+</section>
+<section id="data-sources" class="level2">
+<h2 class="anchored" data-anchor-id="data-sources">Data Sources</h2>
+<section id="primary-data-source-network_traffic_history-database" class="level3">
+<h3 class="anchored" data-anchor-id="primary-data-source-network_traffic_history-database">Primary Data Source: NETWORK_TRAFFIC_HISTORY Database</h3>
+<p><strong>Location:</strong> AWS RDS PostgreSQL instance<br>
+<strong>Schema:</strong> <code>network_traffic_history</code> table containing:</p>
+<ul>
+<li><strong>Flow Records:</strong> Timestamp, source/destination IPs, ports, protocols, packet/byte counts, TCP flags, service types</li>
+<li><strong>Client Metadata:</strong> Network configurations and security policies</li>
+<li><strong>Historical Attack Labels:</strong> Confirmed cyberattacks with timestamps, attack types, affected systems</li>
+</ul>
+<p><strong>Data Volume:</strong> ~5 million records per dataset, with continuous ingestion</p>
+</section>
+<section id="data-schema" class="level3">
+<h3 class="anchored" data-anchor-id="data-schema">Data Schema</h3>
+<p>Key columns include: - <code>timestamp</code> - Flow timestamp - <code>source_ip</code>, <code>dest_ip</code> - Network addresses - <code>source_port</code>, <code>dest_port</code> - Port numbers - <code>protocol</code> - Network protocol (TCP, UDP, ICMP) - <code>duration</code>, <code>packets</code>, <code>bytes</code> - Flow metrics - <code>bytes_per_packet</code>, <code>packets_per_second</code> - Derived metrics - <code>tcp_flags</code> - TCP flag combinations - <code>service</code> - Detected service type - <code>attack_state</code> - Attack classification label - <code>severity_score</code> - Threat severity rating - Temporal features: <code>is_weekend</code>, <code>hour_of_day</code>, <code>day_of_week</code> - Behavioral features: <code>bytes_ratio</code>, <code>packet_size_variance</code>, <code>connection_frequency</code>, <code>unique_ports_per_source</code></p>
+</section>
+</section>
+<section id="data-pipeline-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="data-pipeline-architecture">Data Pipeline Architecture</h2>
+<section id="ingestion-layer" class="level3">
+<h3 class="anchored" data-anchor-id="ingestion-layer">Ingestion Layer</h3>
+<p><strong>Real-time Stream Processing:</strong> - <strong>AWS Kinesis Data Streams:</strong> Ingests network flow data from client environments - <strong>Kinesis Data Firehose:</strong> Buffers and batches data for efficient database writes - <strong>Lambda Functions:</strong> Pre-process data, validate schemas, apply initial transformations</p>
+<p><strong>Batch Processing:</strong> - Scheduled ETL jobs extract historical data from client SIEM systems - Data validation and quality checks before database insertion - Incremental updates to minimize processing overhead</p>
+</section>
+<section id="processing-layer" class="level3">
+<h3 class="anchored" data-anchor-id="processing-layer">Processing Layer</h3>
+<p><strong>ETL Pipeline (Jupyter Notebooks):</strong> - <code>data_preparation.ipynb</code> - Creates attack-specific datasets - <code>etl.ipynb</code> - Orchestrates data transformation workflows - <code>data_understanding.ipynb</code> - Exploratory data analysis</p>
+<p><strong>Data Transformation Steps:</strong> 1. Extract raw network flow data from PostgreSQL 2. Filter and segment by attack type (APT, ITD, Phishing, Zero-day) 3. Feature engineering and encoding 4. Data quality validation 5. Write processed datasets back to database</p>
+</section>
+<section id="storage-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="storage-architecture">Storage Architecture</h3>
+<p><strong>PostgreSQL Database Structure:</strong> - Raw data: <code>network_traffic_history</code> (source of truth) - Processed datasets: <code>network_traffic_history_apt</code>, <code>network_traffic_history_itd</code>, <code>network_traffic_history_phishing</code>, <code>network_traffic_history_zeroday</code> - Model metadata: Model versions, performance metrics, training parameters - Feature stores: Pre-computed features for model inference</p>
+<p><strong>AWS S3:</strong> - Model artifacts (<code>.pkl</code> files) - Training datasets (backup and versioning) - Log files and audit trails</p>
+</section>
+<section id="integration-points" class="level3">
+<h3 class="anchored" data-anchor-id="integration-points">Integration Points</h3>
+<p><strong>Client Systems:</strong> - SIEM platforms (Splunk, QRadar) - Data ingestion via APIs - IDS/Firewalls - Network flow export - SOAR platforms - Alert integration</p>
+<p><strong>Internal Systems:</strong> - AWS SageMaker - Model training and deployment - CloudWatch - Monitoring and logging - Client Portal - Dashboard and reporting</p>
+</section>
+</section>
+<section id="data-flow-diagram" class="level2">
+<h2 class="anchored" data-anchor-id="data-flow-diagram">Data Flow Diagram</h2>
+<pre><code>Client Networks → Kinesis Streams → Lambda (Preprocessing) → PostgreSQL
+                                                              ↓
+PostgreSQL → ETL Pipeline → Feature Engineering → Model Training
+                                                              ↓
+Model Inference ← Feature Store ← Real-time Features ← Kinesis
+                                                              ↓
+Alerts → SIEM/SOAR → SOC Teams</code></pre>
+</section>
+</section>
+<section id="model-architecture-specification" class="level1">
+<h1>Model Architecture Specification</h1>
+<section id="overview-1" class="level2">
+<h2 class="anchored" data-anchor-id="overview-1">Overview</h2>
+<p>Four specialized XGBoost classification models, each optimized for a specific attack type. All models follow a consistent architecture with attack-specific feature engineering.</p>
+</section>
+<section id="model-selection-rationale" class="level2">
+<h2 class="anchored" data-anchor-id="model-selection-rationale">Model Selection Rationale</h2>
+<p><strong>XGBoost Selection:</strong> - Handles mixed data types (categorical, numerical, temporal) - Robust to missing values and outliers - Provides feature importance for explainability - Efficient training and inference - Proven performance in cybersecurity applications</p>
+</section>
+<section id="model-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="model-architecture">Model Architecture</h2>
+<section id="apt-advanced-persistent-threat-detection-model" class="level3">
+<h3 class="anchored" data-anchor-id="apt-advanced-persistent-threat-detection-model">1. APT (Advanced Persistent Threat) Detection Model</h3>
+<p><strong>Model Type:</strong> Binary Classification (XGBoost)<br>
+<strong>Target Variable:</strong> <code>is_apt</code> (boolean)<br>
+<strong>Training Data:</strong> <code>network_traffic_history_apt</code></p>
+<p><strong>Key Features:</strong> - Long-term behavioral patterns (connection frequency over weeks) - Multi-vector coordination indicators - Gradual pattern evolution metrics - Temporal features (hour, day, weekend patterns) - Protocol and service combinations</p>
+<p><strong>Model Parameters (Typical):</strong> - Objective: <code>binary:logistic</code> - Evaluation metric: <code>auc</code> - Tree method: <code>hist</code> (for efficiency) - Learning rate: 0.01-0.1 (tuned) - Max depth: 6-10 (tuned) - Subsampling: 0.8-0.9</p>
+</section>
+<section id="insider-threat-detection-itd-model" class="level3">
+<h3 class="anchored" data-anchor-id="insider-threat-detection-itd-model">2. Insider Threat Detection (ITD) Model</h3>
+<p><strong>Model Type:</strong> Binary Classification (XGBoost)<br>
+<strong>Target Variable:</strong> <code>is_insider_threat</code> (boolean)<br>
+<strong>Training Data:</strong> <code>network_traffic_history_itd</code></p>
+<p><strong>Key Features:</strong> - Off-hours access patterns - Unusual data access volumes - Privilege escalation indicators - User behavior baselines - Internal network communication patterns</p>
+<p><strong>Model Parameters:</strong> Similar to APT model with emphasis on temporal and behavioral features</p>
+</section>
+<section id="phishing-detection-model" class="level3">
+<h3 class="anchored" data-anchor-id="phishing-detection-model">3. Phishing Detection Model</h3>
+<p><strong>Model Type:</strong> Binary Classification (XGBoost)<br>
+<strong>Target Variable:</strong> <code>is_phishing</code> (boolean)<br>
+<strong>Training Data:</strong> <code>network_traffic_history_phishing</code></p>
+<p><strong>Key Features:</strong> - Domain reputation indicators - HTTP request patterns to suspicious domains - Credential submission patterns - Email-related connection timing - Payload pattern analysis</p>
+<p><strong>Model Parameters:</strong> Optimized for domain and timing features</p>
+</section>
+<section id="zero-day-exploit-detection-model" class="level3">
+<h3 class="anchored" data-anchor-id="zero-day-exploit-detection-model">4. Zero-day Exploit Detection Model</h3>
+<p><strong>Model Type:</strong> Binary Classification (XGBoost)<br>
+<strong>Target Variable:</strong> <code>is_zeroday</code> (boolean)<br>
+<strong>Training Data:</strong> <code>network_traffic_history_zeroday</code></p>
+<p><strong>Key Features:</strong> - Novel traffic patterns - Unexpected service responses - Protocol anomalies - Payload anomalies - Unprecedented behavior indicators</p>
+<p><strong>Model Parameters:</strong> Focus on anomaly detection features</p>
+</section>
+</section>
+<section id="feature-engineering-approach" class="level2">
+<h2 class="anchored" data-anchor-id="feature-engineering-approach">Feature Engineering Approach</h2>
+<section id="categorical-encoding" class="level3">
+<h3 class="anchored" data-anchor-id="categorical-encoding">Categorical Encoding</h3>
+<p><strong>Label Encoding Applied To:</strong> - <code>protocol</code> (TCP, UDP, ICMP) - <code>tcp_flags</code> (SYN, ACK, FIN, RST, etc.) - <code>service</code> (HTTP, SMTP, DNS, SSH, etc.) - <code>is_weekend</code> (boolean) - <code>source_ip</code>, <code>dest_ip</code> (IP addresses) - <code>source_port</code>, <code>dest_port</code> (port numbers) - <code>timestamp</code> (temporal encoding)</p>
+</section>
+<section id="derived-features" class="level3">
+<h3 class="anchored" data-anchor-id="derived-features">Derived Features</h3>
+<p><strong>Temporal Features:</strong> - <code>hour_of_day</code> - Hour of day (0-23) - <code>day_of_week</code> - Day of week (0-6) - <code>is_weekend</code> - Weekend indicator</p>
+<p><strong>Statistical Features:</strong> - <code>bytes_ratio</code> - Ratio of bytes in/out - <code>packet_size_variance</code> - Variance in packet sizes - <code>bytes_per_packet</code> - Average bytes per packet - <code>packets_per_second</code> - Connection rate</p>
+<p><strong>Behavioral Features:</strong> - <code>connection_frequency</code> - Frequency of connections from source - <code>unique_ports_per_source</code> - Port diversity indicator</p>
+</section>
+<section id="feature-selection" class="level3">
+<h3 class="anchored" data-anchor-id="feature-selection">Feature Selection</h3>
+<ul>
+<li>Remove highly correlated features</li>
+<li>Drop non-informative columns (e.g., <code>attack_state</code> in training)</li>
+<li>Retain features with high importance scores from XGBoost</li>
+</ul>
+</section>
+</section>
+<section id="model-training-process" class="level2">
+<h2 class="anchored" data-anchor-id="model-training-process">Model Training Process</h2>
+<section id="data-preparation" class="level3">
+<h3 class="anchored" data-anchor-id="data-preparation">Data Preparation</h3>
+<ol type="1">
+<li><strong>Data Extraction:</strong> Query PostgreSQL for attack-specific datasets</li>
+<li><strong>Feature/Target Separation:</strong> Split into X (features) and y (target)</li>
+<li><strong>Categorical Encoding:</strong> Apply LabelEncoder to categorical variables</li>
+<li><strong>Handling Imbalance:</strong> SMOTE oversampling for minority class (if needed)</li>
+<li><strong>Train/Test Split:</strong> Stratified split (80/20) maintaining class distribution</li>
+</ol>
+</section>
+<section id="training-methodology" class="level3">
+<h3 class="anchored" data-anchor-id="training-methodology">Training Methodology</h3>
+<p><strong>Cross-Validation:</strong> - Stratified K-Fold (5 folds) for robust evaluation - Prevents overfitting and provides performance estimates</p>
+<p><strong>Hyperparameter Tuning:</strong> - Grid search or Bayesian optimization - Focus on: learning_rate, max_depth, n_estimators, subsample, colsample_bytree</p>
+<p><strong>Model Evaluation Metrics:</strong> - Accuracy, Precision, Recall, F1-Score - ROC-AUC Score - Matthews Correlation Coefficient (MCC) - Cohen’s Kappa - Confusion Matrix</p>
+</section>
+<section id="model-persistence" class="level3">
+<h3 class="anchored" data-anchor-id="model-persistence">Model Persistence</h3>
+<p><strong>Storage Format:</strong> Pickle (<code>.pkl</code> files) - <code>apt_xgboost_model.pkl</code> - <code>itd_xgboost_model.pkl</code> - <code>phishing_xgboost_model.pkl</code> - <code>zeroday_xgboost_model.pkl</code></p>
+<p><strong>Version Control:</strong> - Model versioning with timestamps - Performance metrics stored with each version - Metadata: training date, data snapshot, hyperparameters</p>
+</section>
+</section>
+<section id="model-inference-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="model-inference-architecture">Model Inference Architecture</h2>
+<p><strong>Real-time Scoring:</strong> - Lambda functions load models from S3 - Feature extraction from incoming network flows - Prediction generation with confidence scores - Alert generation for high-confidence threats</p>
+<p><strong>Batch Scoring:</strong> - Scheduled jobs process historical data - Retrospective threat detection - Model performance validation</p>
+</section>
+</section>
+<section id="infrastructure-and-technology-stack" class="level1">
+<h1>Infrastructure and Technology Stack</h1>
+<section id="cloud-infrastructure-aws" class="level2">
+<h2 class="anchored" data-anchor-id="cloud-infrastructure-aws">Cloud Infrastructure (AWS)</h2>
+<section id="compute-services" class="level3">
+<h3 class="anchored" data-anchor-id="compute-services">Compute Services</h3>
+<p><strong>AWS SageMaker:</strong> - Model training and hyperparameter tuning - Model registry and versioning - Endpoint deployment for inference - Built-in monitoring and logging</p>
+<p><strong>AWS Lambda:</strong> - Real-time data preprocessing - Model inference functions - Alert generation and routing - Event-driven processing</p>
+<p><strong>AWS ECS/EKS (Container Orchestration):</strong> - Docker containerization for model serving - Kubernetes for scalable deployment - Consistent environments across dev/staging/prod</p>
+</section>
+<section id="data-services" class="level3">
+<h3 class="anchored" data-anchor-id="data-services">Data Services</h3>
+<p><strong>AWS RDS PostgreSQL:</strong> - Primary data store for network flow data - Automated backups and point-in-time recovery - Multi-AZ deployment for high availability - Encryption at rest and in transit</p>
+<p><strong>AWS S3:</strong> - Model artifact storage - Training dataset backups - Log file archival - Version-controlled model storage</p>
+<p><strong>AWS Kinesis:</strong> - Data Streams: Real-time data ingestion - Data Firehose: Batch data delivery to S3/RDS - Data Analytics: Stream processing (if needed)</p>
+</section>
+<section id="monitoring-and-logging" class="level3">
+<h3 class="anchored" data-anchor-id="monitoring-and-logging">Monitoring and Logging</h3>
+<p><strong>AWS CloudWatch:</strong> - Metrics: Model performance, latency, throughput - Logs: Application and system logs - Alarms: Automated alerting on thresholds - Dashboards: Real-time monitoring views</p>
+<p><strong>AWS X-Ray:</strong> - Distributed tracing for debugging - Performance bottleneck identification</p>
+</section>
+</section>
+<section id="development-tools" class="level2">
+<h2 class="anchored" data-anchor-id="development-tools">Development Tools</h2>
+<section id="data-science-environment" class="level3">
+<h3 class="anchored" data-anchor-id="data-science-environment">Data Science Environment</h3>
+<p><strong>Jupyter Notebooks:</strong> - <code>data_understanding.ipynb</code> - Exploratory data analysis - <code>data_preparation.ipynb</code> - Data preprocessing - <code>etl.ipynb</code> - ETL orchestration - <code>apt_modeling.ipynb</code> - APT model development - <code>itd_modeling.ipynb</code> - ITD model development - <code>phishing_modeling.ipynb</code> - Phishing model development - <code>zeroday_modeling.ipynb</code> - Zero-day model development - <code>*_modeling_evaluation.ipynb</code> - Model evaluation notebooks</p>
+<p><strong>Python Libraries:</strong> - <code>pandas</code>, <code>numpy</code> - Data manipulation - <code>xgboost</code> - Machine learning models - <code>scikit-learn</code> - Preprocessing and evaluation - <code>psycopg2</code>, <code>sqlalchemy</code> - Database connectivity - <code>matplotlib</code>, <code>seaborn</code> - Visualization - <code>imbalanced-learn</code> - Handling class imbalance</p>
+</section>
+<section id="database-tools" class="level3">
+<h3 class="anchored" data-anchor-id="database-tools">Database Tools</h3>
+<p><strong>PostgresAgent.py:</strong> - Custom Python class for PostgreSQL operations - DDL/DML execution - DataFrame integration - Connection management</p>
+<p><strong>SQL Magic (Jupyter):</strong> - Direct SQL execution in notebooks - Seamless database integration</p>
+</section>
+<section id="environment-management" class="level3">
+<h3 class="anchored" data-anchor-id="environment-management">Environment Management</h3>
+<p><strong>env_setup.py:</strong> - Environment variable loading (<code>.env</code> file) - Database connection configuration - SQL magic setup - PostgresAgent initialization</p>
+</section>
+</section>
+<section id="cicd-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="cicd-pipeline">CI/CD Pipeline</h2>
+<p><strong>Version Control:</strong> - Git repository for code management - Branching strategy: main, develop, feature branches</p>
+<p><strong>Continuous Integration:</strong> - Automated testing on code commits - Code quality checks (linting, formatting) - Model validation tests</p>
+<p><strong>Continuous Deployment:</strong> - Automated model deployment to staging - Integration testing in staging environment - Manual approval for production deployment - Rollback capabilities</p>
+</section>
+<section id="security-infrastructure" class="level2">
+<h2 class="anchored" data-anchor-id="security-infrastructure">Security Infrastructure</h2>
+<p><strong>AWS IAM:</strong> - Role-based access control - Least privilege principles - Service-specific roles for Lambda, SageMaker</p>
+<p><strong>AWS Secrets Manager:</strong> - Database credentials - API keys - Encryption keys</p>
+<p><strong>VPC Configuration:</strong> - Isolated network environments - Security groups for access control - Private subnets for database access</p>
+</section>
+</section>
+<section id="data-quality-and-validation-framework" class="level1">
+<h1>Data Quality and Validation Framework</h1>
+<section id="data-quality-dimensions" class="level2">
+<h2 class="anchored" data-anchor-id="data-quality-dimensions">Data Quality Dimensions</h2>
+<section id="completeness" class="level3">
+<h3 class="anchored" data-anchor-id="completeness">Completeness</h3>
+<p><strong>Target:</strong> &gt;95% data completeness<br>
+<strong>Current State:</strong> 5-10% missing entries<br>
+<strong>Validation Rules:</strong> - Check for NULL values in critical fields (timestamp, IPs, ports) - Monitor missing data rates by client and time period - Alert when missing data exceeds 10% threshold</p>
+<p><strong>Remediation:</strong> - Imputation strategies for missing values - Statistical imputation (mean, median, mode) - Domain-specific imputation rules - Flag imputed values for model transparency</p>
+</section>
+<section id="accuracy" class="level3">
+<h3 class="anchored" data-anchor-id="accuracy">Accuracy</h3>
+<p><strong>Validation Checks:</strong> - IP address format validation - Port number range validation (0-65535) - Protocol value validation (TCP, UDP, ICMP) - Timestamp consistency checks - Byte/packet count logical consistency</p>
+<p><strong>Data Quality Metrics:</strong> - Percentage of records passing validation - Error rate by validation rule - Client-specific accuracy scores</p>
+</section>
+<section id="consistency" class="level3">
+<h3 class="anchored" data-anchor-id="consistency">Consistency</h3>
+<p><strong>Standardization Requirements:</strong> - Consistent time zone handling (UTC) - Standardized protocol naming - Uniform service classification - Consistent IP address formatting</p>
+<p><strong>Cross-Client Consistency:</strong> - Format standardization across client data - Unit of measurement consistency - Naming convention alignment</p>
+</section>
+<section id="timeliness" class="level3">
+<h3 class="anchored" data-anchor-id="timeliness">Timeliness</h3>
+<p><strong>Real-time Processing:</strong> - Data ingestion latency &lt; 5 seconds - Model inference latency &lt; 100ms - End-to-end alert generation &lt; 10 seconds</p>
+<p><strong>Batch Processing:</strong> - Daily batch jobs complete within 2 hours - Historical data processing SLA: 24 hours</p>
+</section>
+</section>
+<section id="data-validation-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="data-validation-procedures">Data Validation Procedures</h2>
+<section id="pre-ingestion-validation" class="level3">
+<h3 class="anchored" data-anchor-id="pre-ingestion-validation">Pre-Ingestion Validation</h3>
+<p><strong>Schema Validation:</strong> - Verify column names and types - Check required fields present - Validate data ranges</p>
+<p><strong>Business Rule Validation:</strong> - Logical consistency checks (e.g., bytes &gt;= packets) - Temporal consistency (timestamps in order) - Network topology validation (IP ranges)</p>
+</section>
+<section id="post-processing-validation" class="level3">
+<h3 class="anchored" data-anchor-id="post-processing-validation">Post-Processing Validation</h3>
+<p><strong>Feature Engineering Validation:</strong> - Verify derived features calculated correctly - Check for NaN or infinite values - Validate feature distributions</p>
+<p><strong>Model Input Validation:</strong> - Ensure all required features present - Check feature value ranges - Validate data types match model expectations</p>
+</section>
+</section>
+<section id="data-quality-monitoring" class="level2">
+<h2 class="anchored" data-anchor-id="data-quality-monitoring">Data Quality Monitoring</h2>
+<section id="automated-monitoring" class="level3">
+<h3 class="anchored" data-anchor-id="automated-monitoring">Automated Monitoring</h3>
+<p><strong>CloudWatch Metrics:</strong> - Missing data percentage - Validation failure rate - Data freshness (time since last update) - Processing error counts</p>
+<p><strong>Alerting:</strong> - Email/SNS alerts for quality threshold breaches - Dashboard visualization of quality metrics - Weekly quality reports</p>
+</section>
+<section id="manual-quality-reviews" class="level3">
+<h3 class="anchored" data-anchor-id="manual-quality-reviews">Manual Quality Reviews</h3>
+<p><strong>Weekly Reviews:</strong> - Review quality metrics dashboard - Investigate anomalies - Client-specific quality assessments</p>
+<p><strong>Monthly Audits:</strong> - Comprehensive data quality assessment - Trend analysis - Improvement recommendations</p>
+</section>
+</section>
+<section id="data-cleansing-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="data-cleansing-procedures">Data Cleansing Procedures</h2>
+<section id="automated-cleansing" class="level3">
+<h3 class="anchored" data-anchor-id="automated-cleansing">Automated Cleansing</h3>
+<p><strong>Standardization:</strong> - Normalize IP addresses - Standardize protocol names - Convert time zones to UTC - Round numeric precision</p>
+<p><strong>Error Correction:</strong> - Fix common formatting errors - Correct obvious data entry mistakes - Remove duplicate records</p>
+</section>
+<section id="manual-intervention" class="level3">
+<h3 class="anchored" data-anchor-id="manual-intervention">Manual Intervention</h3>
+<p><strong>Complex Cases:</strong> - Ambiguous data requiring domain expertise - Client-specific data issues - Systematic data quality problems</p>
+<p><strong>Documentation:</strong> - Log all data cleansing actions - Maintain audit trail - Document cleansing rules and rationale</p>
+</section>
+</section>
+</section>
+<section id="security-and-privacy-controls" class="level1">
+<h1>Security and Privacy Controls</h1>
+<section id="data-protection-measures" class="level2">
+<h2 class="anchored" data-anchor-id="data-protection-measures">Data Protection Measures</h2>
+<section id="encryption" class="level3">
+<h3 class="anchored" data-anchor-id="encryption">Encryption</h3>
+<p><strong>Data at Rest:</strong> - AWS RDS encryption enabled (AES-256) - S3 bucket encryption (SSE-S3 or SSE-KMS) - Model artifact encryption - Database backup encryption</p>
+<p><strong>Data in Transit:</strong> - TLS 1.2+ for all database connections - HTTPS for API communications - VPN for client data ingestion - Encrypted Kinesis streams</p>
+</section>
+<section id="access-controls" class="level3">
+<h3 class="anchored" data-anchor-id="access-controls">Access Controls</h3>
+<p><strong>AWS IAM Policies:</strong> - Principle of least privilege - Role-based access control (RBAC) - Service-specific IAM roles - Regular access reviews and audits</p>
+<p><strong>Database Access:</strong> - PostgreSQL user authentication - Row-level security (if needed) - Connection IP whitelisting - Encrypted credentials in Secrets Manager</p>
+<p><strong>Network Security:</strong> - VPC isolation - Security groups restricting access - Private subnets for sensitive resources - Network ACLs for additional protection</p>
+</section>
+</section>
+<section id="compliance-requirements" class="level2">
+<h2 class="anchored" data-anchor-id="compliance-requirements">Compliance Requirements</h2>
+<section id="data-privacy-regulations" class="level3">
+<h3 class="anchored" data-anchor-id="data-privacy-regulations">Data Privacy Regulations</h3>
+<p><strong>GDPR Compliance:</strong> - Right to erasure (data deletion) - Data minimization principles - Privacy by design - Data processing agreements</p>
+<p><strong>Data Residency:</strong> - Client-specific data residency requirements - Regional data storage options - Cross-border data transfer restrictions</p>
+</section>
+<section id="industry-standards" class="level3">
+<h3 class="anchored" data-anchor-id="industry-standards">Industry Standards</h3>
+<p><strong>SOC 2 Compliance:</strong> - Security controls documentation - Regular security audits - Access control procedures - Incident response procedures</p>
+<p><strong>ISO 27001 Alignment:</strong> - Information security management - Risk assessment procedures - Security control implementation</p>
+</section>
+</section>
+<section id="privacy-safeguards" class="level2">
+<h2 class="anchored" data-anchor-id="privacy-safeguards">Privacy Safeguards</h2>
+<section id="data-anonymization" class="level3">
+<h3 class="anchored" data-anchor-id="data-anonymization">Data Anonymization</h3>
+<p><strong>PII Protection:</strong> - IP address anonymization (if required) - Client data segregation - Pseudonymization techniques - Data masking for non-production environments</p>
+</section>
+<section id="data-usage-agreements" class="level3">
+<h3 class="anchored" data-anchor-id="data-usage-agreements">Data Usage Agreements</h3>
+<p><strong>Client Consent:</strong> - Explicit consent for data usage - Clear data usage agreements - Purpose limitation - Data retention policies</p>
+</section>
+<section id="audit-and-logging" class="level3">
+<h3 class="anchored" data-anchor-id="audit-and-logging">Audit and Logging</h3>
+<p><strong>Comprehensive Logging:</strong> - All data access logged - Model training data usage tracked - User activity audit trails - Compliance audit reports</p>
+<p><strong>Retention Policies:</strong> - Log retention: 90 days (minimum) - Data retention per client agreements - Secure log archival - Automated log purging</p>
+</section>
+</section>
+<section id="ethical-considerations" class="level2">
+<h2 class="anchored" data-anchor-id="ethical-considerations">Ethical Considerations</h2>
+<section id="bias-mitigation" class="level3">
+<h3 class="anchored" data-anchor-id="bias-mitigation">Bias Mitigation</h3>
+<p><strong>Model Fairness:</strong> - Bias testing across client segments - Fairness metrics monitoring - Regular bias audits - Mitigation strategies for identified biases</p>
+</section>
+<section id="transparency" class="level3">
+<h3 class="anchored" data-anchor-id="transparency">Transparency</h3>
+<p><strong>Model Explainability:</strong> - Feature importance analysis - SHAP values for predictions - Decision boundary visualization - Client-facing explainability reports</p>
+</section>
+<section id="responsible-ai" class="level3">
+<h3 class="anchored" data-anchor-id="responsible-ai">Responsible AI</h3>
+<p><strong>Ethical Review:</strong> - Ethics department consultation - Ethical use guidelines - Regular ethical reviews - Stakeholder feedback incorporation</p>
+</section>
+</section>
+</section>
+<section id="deployment-strategy-and-environment-setup" class="level1">
+<h1>Deployment Strategy and Environment Setup</h1>
+<section id="environment-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="environment-architecture">Environment Architecture</h2>
+<section id="development-environment" class="level3">
+<h3 class="anchored" data-anchor-id="development-environment">Development Environment</h3>
+<p><strong>Purpose:</strong> Model development and experimentation<br>
+<strong>Infrastructure:</strong> - Jupyter notebooks on local machines or SageMaker Notebooks - Development database (subset of production data) - Development S3 bucket for model artifacts - Limited compute resources</p>
+<p><strong>Access:</strong> - Data science team only - Read-only access to production data (anonymized subset) - Full access to development resources</p>
+</section>
+<section id="staging-environment" class="level3">
+<h3 class="anchored" data-anchor-id="staging-environment">Staging Environment</h3>
+<p><strong>Purpose:</strong> Integration testing and validation<br>
+<strong>Infrastructure:</strong> - Production-like AWS environment - Full data pipeline replication - Model endpoints for testing - Monitoring and logging enabled</p>
+<p><strong>Access:</strong> - Extended team access (Data Science, Engineering, Security) - Production data access (with appropriate controls) - Full testing capabilities</p>
+</section>
+<section id="production-environment" class="level3">
+<h3 class="anchored" data-anchor-id="production-environment">Production Environment</h3>
+<p><strong>Purpose:</strong> Live threat detection system<br>
+<strong>Infrastructure:</strong> - High-availability AWS setup - Multi-AZ deployment - Auto-scaling capabilities - Production-grade monitoring</p>
+<p><strong>Access:</strong> - Restricted access (Operations team) - Change management procedures - Approval workflows for deployments</p>
+</section>
+</section>
+<section id="deployment-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="deployment-procedures">Deployment Procedures</h2>
+<section id="model-deployment-workflow" class="level3">
+<h3 class="anchored" data-anchor-id="model-deployment-workflow">Model Deployment Workflow</h3>
+<p><strong>Step 1: Model Validation</strong> - Performance metrics meet acceptance criteria - Security and compliance review completed - Documentation updated</p>
+<p><strong>Step 2: Staging Deployment</strong> - Deploy model to staging environment - Integration testing - Performance validation - Security testing</p>
+<p><strong>Step 3: Production Deployment</strong> - Create deployment package - Deploy to production (blue-green deployment) - Smoke tests - Monitor initial performance</p>
+<p><strong>Step 4: Verification</strong> - Verify model performance metrics - Check alert generation - Validate integration with SIEM/SOAR - Confirm monitoring dashboards operational</p>
+</section>
+<section id="containerization-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="containerization-strategy">Containerization Strategy</h3>
+<p><strong>Docker Images:</strong> - Base image: Python 3.9+ with required libraries - Model artifacts included in image - Environment-specific configuration - Health check endpoints</p>
+<p><strong>Kubernetes Deployment:</strong> - Deployment manifests for each model - Service definitions for load balancing - ConfigMaps for configuration - Secrets for credentials</p>
+</section>
+<section id="infrastructure-as-code" class="level3">
+<h3 class="anchored" data-anchor-id="infrastructure-as-code">Infrastructure as Code</h3>
+<p><strong>AWS CloudFormation / Terraform:</strong> - Infrastructure definitions in version control - Reproducible environments - Environment-specific parameter files - Automated infrastructure provisioning</p>
+</section>
+</section>
+<section id="rollback-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="rollback-procedures">Rollback Procedures</h2>
+<section id="automated-rollback-triggers" class="level3">
+<h3 class="anchored" data-anchor-id="automated-rollback-triggers">Automated Rollback Triggers</h3>
+<p><strong>Performance Degradation:</strong> - False positive rate exceeds threshold - Model accuracy drops below acceptable level - Latency exceeds SLA</p>
+<p><strong>System Failures:</strong> - Model endpoint failures - Database connection issues - Integration failures</p>
+</section>
+<section id="rollback-process" class="level3">
+<h3 class="anchored" data-anchor-id="rollback-process">Rollback Process</h3>
+<ol type="1">
+<li><strong>Detection:</strong> Automated monitoring detects issue</li>
+<li><strong>Alert:</strong> Operations team notified</li>
+<li><strong>Decision:</strong> Assess severity and decide on rollback</li>
+<li><strong>Execution:</strong> Revert to previous model version</li>
+<li><strong>Verification:</strong> Confirm system stability</li>
+<li><strong>Investigation:</strong> Root cause analysis</li>
+</ol>
+</section>
+<section id="rollback-capabilities" class="level3">
+<h3 class="anchored" data-anchor-id="rollback-capabilities">Rollback Capabilities</h3>
+<p><strong>Model Versioning:</strong> - Previous model versions stored in S3 - Quick model endpoint updates - Database schema versioning (if needed)</p>
+<p><strong>Infrastructure Rollback:</strong> - Infrastructure changes in version control - Ability to revert infrastructure changes - Database backup restoration (if needed)</p>
+</section>
+</section>
+<section id="infrastructure-provisioning" class="level2">
+<h2 class="anchored" data-anchor-id="infrastructure-provisioning">Infrastructure Provisioning</h2>
+<section id="automated-provisioning" class="level3">
+<h3 class="anchored" data-anchor-id="automated-provisioning">Automated Provisioning</h3>
+<p><strong>CI/CD Pipeline:</strong> - Infrastructure provisioning on environment creation - Configuration management - Dependency resolution - Health checks</p>
+</section>
+<section id="manual-provisioning" class="level3">
+<h3 class="anchored" data-anchor-id="manual-provisioning">Manual Provisioning</h3>
+<p><strong>Initial Setup:</strong> - VPC and networking setup - Database instance creation - S3 bucket creation - IAM role and policy setup - Monitoring and alerting configuration</p>
+<p><strong>Scaling:</strong> - Auto-scaling groups for compute - Database read replicas (if needed) - Kinesis shard scaling - S3 lifecycle policies</p>
+</section>
+</section>
+</section>
+<section id="monitoring-and-maintenance-plan" class="level1">
+<h1>Monitoring and Maintenance Plan</h1>
+<section id="performance-tracking" class="level2">
+<h2 class="anchored" data-anchor-id="performance-tracking">Performance Tracking</h2>
+<section id="model-performance-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="model-performance-metrics">Model Performance Metrics</h3>
+<p><strong>Accuracy Metrics:</strong> - Precision, Recall, F1-Score per attack type - Overall accuracy - ROC-AUC scores - Confusion matrices</p>
+<p><strong>Operational Metrics:</strong> - Mean Time to Detect (MTTD) - False Positive Rate (target: &lt;2%) - Alert generation rate - Model inference latency</p>
+<p><strong>Tracking Frequency:</strong> - Real-time: Key metrics updated every minute - Daily: Comprehensive performance reports - Weekly: Trend analysis and reporting</p>
+</section>
+<section id="system-performance-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="system-performance-metrics">System Performance Metrics</h3>
+<p><strong>Infrastructure Metrics:</strong> - CPU utilization - Memory usage - Network throughput - Database connection pool usage</p>
+<p><strong>Application Metrics:</strong> - Request rates - Error rates - Response times - Queue depths</p>
+</section>
+<section id="monitoring-dashboards" class="level3">
+<h3 class="anchored" data-anchor-id="monitoring-dashboards">Monitoring Dashboards</h3>
+<p><strong>CloudWatch Dashboards:</strong> - Real-time model performance - System health overview - Alert trends - Resource utilization</p>
+<p><strong>Custom Dashboards:</strong> - Business KPI tracking - Client-specific metrics - Historical trend analysis</p>
+</section>
+</section>
+<section id="model-drift-detection" class="level2">
+<h2 class="anchored" data-anchor-id="model-drift-detection">Model Drift Detection</h2>
+<section id="data-drift-monitoring" class="level3">
+<h3 class="anchored" data-anchor-id="data-drift-monitoring">Data Drift Monitoring</h3>
+<p><strong>Feature Distribution Monitoring:</strong> - Statistical tests (KS test, PSI) comparing training vs.&nbsp;production data - Feature distribution visualizations - Automated alerts on significant drift</p>
+<p><strong>Concept Drift Detection:</strong> - Model performance degradation over time - Prediction distribution changes - Label distribution shifts (if available)</p>
+</section>
+<section id="detection-mechanisms" class="level3">
+<h3 class="anchored" data-anchor-id="detection-mechanisms">Detection Mechanisms</h3>
+<p><strong>Automated Detection:</strong> - Daily statistical tests on feature distributions - Performance metric trend analysis - Anomaly detection on prediction patterns</p>
+<p><strong>Alerting:</strong> - Email/SNS alerts when drift detected - Severity-based alerting (warning, critical) - Dashboard indicators</p>
+</section>
+</section>
+<section id="retraining-schedules" class="level2">
+<h2 class="anchored" data-anchor-id="retraining-schedules">Retraining Schedules</h2>
+<section id="scheduled-retraining" class="level3">
+<h3 class="anchored" data-anchor-id="scheduled-retraining">Scheduled Retraining</h3>
+<p><strong>Frequency:</strong> - Monthly retraining for all models - Weekly retraining if performance degrades - Ad-hoc retraining after major data changes</p>
+<p><strong>Retraining Triggers:</strong> - Model performance below threshold - Significant data drift detected - New attack patterns identified - Sufficient new labeled data available</p>
+</section>
+<section id="retraining-process" class="level3">
+<h3 class="anchored" data-anchor-id="retraining-process">Retraining Process</h3>
+<ol type="1">
+<li><strong>Data Collection:</strong> Gather new training data</li>
+<li><strong>Data Validation:</strong> Quality checks on new data</li>
+<li><strong>Model Training:</strong> Train new model version</li>
+<li><strong>Validation:</strong> Evaluate on holdout set</li>
+<li><strong>Comparison:</strong> Compare with current production model</li>
+<li><strong>Deployment:</strong> Deploy if performance improved</li>
+<li><strong>Monitoring:</strong> Track new model performance</li>
+</ol>
+</section>
+<section id="model-versioning" class="level3">
+<h3 class="anchored" data-anchor-id="model-versioning">Model Versioning</h3>
+<p><strong>Version Management:</strong> - Semantic versioning (major.minor.patch) - Version metadata (training date, data snapshot, performance) - Version comparison and rollback capabilities</p>
+</section>
+</section>
+<section id="ongoing-maintenance-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="ongoing-maintenance-procedures">Ongoing Maintenance Procedures</h2>
+<section id="regular-maintenance-tasks" class="level3">
+<h3 class="anchored" data-anchor-id="regular-maintenance-tasks">Regular Maintenance Tasks</h3>
+<p><strong>Daily:</strong> - Review monitoring dashboards - Check for alerts and errors - Verify data pipeline health</p>
+<p><strong>Weekly:</strong> - Performance metric review - Data quality assessment - Client feedback review</p>
+<p><strong>Monthly:</strong> - Comprehensive system health review - Model performance analysis - Infrastructure optimization review - Security audit review</p>
+</section>
+<section id="proactive-maintenance" class="level3">
+<h3 class="anchored" data-anchor-id="proactive-maintenance">Proactive Maintenance</h3>
+<p><strong>Capacity Planning:</strong> - Monitor resource utilization trends - Plan for scaling needs - Optimize resource allocation</p>
+<p><strong>Performance Optimization:</strong> - Database query optimization - Model inference optimization - Pipeline efficiency improvements</p>
+<p><strong>Security Updates:</strong> - Dependency vulnerability scanning - Security patch application - Access review and cleanup</p>
+</section>
+<section id="maintenance-windows" class="level3">
+<h3 class="anchored" data-anchor-id="maintenance-windows">Maintenance Windows</h3>
+<p><strong>Scheduled Maintenance:</strong> - Monthly maintenance windows (low-traffic periods) - Advance notification to stakeholders - Minimal service disruption</p>
+<p><strong>Emergency Maintenance:</strong> - Critical security patches - System stability issues - Immediate remediation required</p>
+</section>
+</section>
+</section>
+<section id="testing-and-validation-approach" class="level1">
+<h1>Testing and Validation Approach</h1>
+<section id="unit-testing" class="level2">
+<h2 class="anchored" data-anchor-id="unit-testing">Unit Testing</h2>
+<section id="model-component-testing" class="level3">
+<h3 class="anchored" data-anchor-id="model-component-testing">Model Component Testing</h3>
+<p><strong>Feature Engineering Tests:</strong> - Test feature calculation functions - Validate encoding procedures - Verify feature transformations - Test edge cases and missing values</p>
+<p><strong>Data Processing Tests:</strong> - Database query validation - Data transformation correctness - Data quality check functions - Error handling</p>
+</section>
+<section id="code-quality" class="level3">
+<h3 class="anchored" data-anchor-id="code-quality">Code Quality</h3>
+<p><strong>Test Coverage:</strong> - Target: &gt;80% code coverage - Critical functions: 100% coverage - Regular coverage reports</p>
+<p><strong>Testing Framework:</strong> - <code>pytest</code> for Python unit tests - Mock objects for external dependencies - Fixtures for test data</p>
+</section>
+</section>
+<section id="integration-testing" class="level2">
+<h2 class="anchored" data-anchor-id="integration-testing">Integration Testing</h2>
+<section id="pipeline-integration-tests" class="level3">
+<h3 class="anchored" data-anchor-id="pipeline-integration-tests">Pipeline Integration Tests</h3>
+<p><strong>ETL Pipeline Testing:</strong> - End-to-end data flow validation - Database integration tests - Error handling and recovery - Performance under load</p>
+<p><strong>Model Integration Tests:</strong> - Model loading and initialization - Feature extraction integration - Prediction generation - Alert generation workflow</p>
+</section>
+<section id="system-integration-tests" class="level3">
+<h3 class="anchored" data-anchor-id="system-integration-tests">System Integration Tests</h3>
+<p><strong>AWS Service Integration:</strong> - Lambda function integration - SageMaker endpoint integration - Kinesis stream processing - CloudWatch logging and metrics</p>
+<p><strong>External System Integration:</strong> - SIEM integration testing - SOAR platform integration - Client portal integration - API endpoint testing</p>
+</section>
+</section>
+<section id="model-validation-methods" class="level2">
+<h2 class="anchored" data-anchor-id="model-validation-methods">Model Validation Methods</h2>
+<section id="cross-validation" class="level3">
+<h3 class="anchored" data-anchor-id="cross-validation">Cross-Validation</h3>
+<p><strong>Stratified K-Fold:</strong> - 5-fold cross-validation - Maintains class distribution - Robust performance estimates - Prevents overfitting</p>
+</section>
+<section id="holdout-validation" class="level3">
+<h3 class="anchored" data-anchor-id="holdout-validation">Holdout Validation</h3>
+<p><strong>Train/Validation/Test Split:</strong> - 60% training, 20% validation, 20% test - Stratified splits - Temporal considerations (if applicable)</p>
+</section>
+<section id="temporal-validation" class="level3">
+<h3 class="anchored" data-anchor-id="temporal-validation">Temporal Validation</h3>
+<p><strong>Time-Based Splits:</strong> - Train on historical data - Validate on recent data - Test on future data (if available) - Prevents temporal leakage</p>
+</section>
+<section id="performance-validation" class="level3">
+<h3 class="anchored" data-anchor-id="performance-validation">Performance Validation</h3>
+<p><strong>Metrics Validation:</strong> - Precision, Recall, F1-Score - ROC-AUC, PR-AUC - Confusion matrix analysis - Per-class performance</p>
+<p><strong>Business Metric Validation:</strong> - MTTD reduction validation - False positive rate validation - Alert quality assessment</p>
+</section>
+</section>
+<section id="acceptance-criteria" class="level2">
+<h2 class="anchored" data-anchor-id="acceptance-criteria">Acceptance Criteria</h2>
+<section id="model-performance-criteria" class="level3">
+<h3 class="anchored" data-anchor-id="model-performance-criteria">Model Performance Criteria</h3>
+<p><strong>Minimum Performance Thresholds:</strong> - Precision: &gt;85% per attack type - Recall: &gt;80% per attack type - F1-Score: &gt;82% per attack type - False Positive Rate: &lt;2% - ROC-AUC: &gt;0.90</p>
+</section>
+<section id="operational-criteria" class="level3">
+<h3 class="anchored" data-anchor-id="operational-criteria">Operational Criteria</h3>
+<p><strong>System Performance:</strong> - Model inference latency: &lt;100ms (p95) - End-to-end alert generation: &lt;10 seconds - System uptime: &gt;99.9% - Data pipeline latency: &lt;5 seconds</p>
+</section>
+<section id="business-criteria" class="level3">
+<h3 class="anchored" data-anchor-id="business-criteria">Business Criteria</h3>
+<p><strong>Business Impact:</strong> - MTTD reduction: ≥50% per attack type - Client satisfaction: Positive feedback - Integration success: Seamless SIEM/SOAR integration - Documentation completeness: All documentation updated</p>
+</section>
+</section>
+<section id="test-data-management" class="level2">
+<h2 class="anchored" data-anchor-id="test-data-management">Test Data Management</h2>
+<section id="test-data-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="test-data-strategy">Test Data Strategy</h3>
+<p><strong>Synthetic Test Data:</strong> - Generate synthetic network flows - Known attack patterns - Edge cases and anomalies</p>
+<p><strong>Anonymized Production Data:</strong> - Anonymized subset of production data - Representative of real-world scenarios - Updated regularly</p>
+<p><strong>Labeled Test Sets:</strong> - Curated test sets with known labels - Balanced class distribution - Diverse attack scenarios</p>
+</section>
+<section id="test-environment" class="level3">
+<h3 class="anchored" data-anchor-id="test-environment">Test Environment</h3>
+<p><strong>Isolated Test Environment:</strong> - Separate from development/staging/production - Controlled test data - Reproducible test scenarios</p>
+</section>
+</section>
+</section>
+<section id="api-and-interface-specifications" class="level1">
+<h1>API and Interface Specifications</h1>
+<section id="model-inference-api" class="level2">
+<h2 class="anchored" data-anchor-id="model-inference-api">Model Inference API</h2>
+<section id="rest-api-endpoints" class="level3">
+<h3 class="anchored" data-anchor-id="rest-api-endpoints">REST API Endpoints</h3>
+<p><strong>Endpoint: <code>/api/v1/predict</code></strong></p>
+<p><strong>Method:</strong> POST<br>
+<strong>Authentication:</strong> API key or OAuth 2.0<br>
+<strong>Content-Type:</strong> application/json</p>
+<p><strong>Request Body:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_type"</span><span class="fu">:</span> <span class="st">"apt"</span> <span class="er">|</span> <span class="st">"itd"</span> <span class="er">|</span> <span class="st">"phishing"</span> <span class="er">|</span> <span class="st">"zeroday"</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"features"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"timestamp"</span><span class="fu">:</span> <span class="st">"2025-05-23T03:03:58Z"</span><span class="fu">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"source_ip"</span><span class="fu">:</span> <span class="st">"222.187.194.161"</span><span class="fu">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"dest_ip"</span><span class="fu">:</span> <span class="st">"172.16.173.30"</span><span class="fu">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"source_port"</span><span class="fu">:</span> <span class="dv">50397</span><span class="fu">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"dest_port"</span><span class="fu">:</span> <span class="dv">25</span><span class="fu">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"protocol"</span><span class="fu">:</span> <span class="st">"TCP"</span><span class="fu">,</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"duration"</span><span class="fu">:</span> <span class="fl">17.28</span><span class="fu">,</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"packets"</span><span class="fu">:</span> <span class="dv">53</span><span class="fu">,</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"bytes"</span><span class="fu">:</span> <span class="dv">37361</span><span class="fu">,</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="er">...</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Response:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"prediction"</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"probability"</span><span class="fu">:</span> <span class="fl">0.87</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"confidence"</span><span class="fu">:</span> <span class="st">"high"</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"model_version"</span><span class="fu">:</span> <span class="st">"1.2.3"</span><span class="fu">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timestamp"</span><span class="fu">:</span> <span class="st">"2025-05-23T03:03:59Z"</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Error Responses:</strong> - 400: Bad Request (invalid input) - 401: Unauthorized - 500: Internal Server Error</p>
+</section>
+<section id="batch-prediction-api" class="level3">
+<h3 class="anchored" data-anchor-id="batch-prediction-api">Batch Prediction API</h3>
+<p><strong>Endpoint: <code>/api/v1/batch-predict</code></strong></p>
+<p><strong>Method:</strong> POST<br>
+<strong>Request:</strong> Array of feature objects<br>
+<strong>Response:</strong> Array of predictions</p>
+</section>
+</section>
+<section id="siemsoar-integration" class="level2">
+<h2 class="anchored" data-anchor-id="siemsoar-integration">SIEM/SOAR Integration</h2>
+<section id="splunk-integration" class="level3">
+<h3 class="anchored" data-anchor-id="splunk-integration">Splunk Integration</h3>
+<p><strong>Splunk Add-on:</strong> - Custom add-on for CyberGuard models - Real-time alert ingestion - Dashboard integration</p>
+<p><strong>Data Format:</strong> - CEF (Common Event Format) - Structured data with threat scores - Metadata for correlation</p>
+</section>
+<section id="qradar-integration" class="level3">
+<h3 class="anchored" data-anchor-id="qradar-integration">QRadar Integration</h3>
+<p><strong>QRadar DSM:</strong> - Custom Device Support Module - Log source configuration - Event parsing and normalization</p>
+</section>
+<section id="soar-platform-integration" class="level3">
+<h3 class="anchored" data-anchor-id="soar-platform-integration">SOAR Platform Integration</h3>
+<p><strong>API Integration:</strong> - RESTful API for alert ingestion - Webhook support for real-time alerts - Playbook trigger integration</p>
+<p><strong>Alert Format:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"alert_id"</span><span class="fu">:</span> <span class="st">"uuid"</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timestamp"</span><span class="fu">:</span> <span class="st">"ISO 8601"</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"attack_type"</span><span class="fu">:</span> <span class="st">"apt"</span> <span class="er">|</span> <span class="st">"itd"</span> <span class="er">|</span> <span class="st">"phishing"</span> <span class="er">|</span> <span class="st">"zeroday"</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"severity"</span><span class="fu">:</span> <span class="st">"low"</span> <span class="er">|</span> <span class="st">"medium"</span> <span class="er">|</span> <span class="st">"high"</span> <span class="er">|</span> <span class="st">"critical"</span><span class="fu">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"source_ip"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"dest_ip"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"confidence"</span><span class="fu">:</span> <span class="fl">0.0-1.0</span><span class="fu">,</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"details"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"model_version"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"features"</span><span class="fu">:</span> <span class="fu">{}</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="client-portal-interface" class="level2">
+<h2 class="anchored" data-anchor-id="client-portal-interface">Client Portal Interface</h2>
+<section id="dashboard-api" class="level3">
+<h3 class="anchored" data-anchor-id="dashboard-api">Dashboard API</h3>
+<p><strong>Endpoint: <code>/api/v1/dashboard/metrics</code></strong></p>
+<p><strong>Method:</strong> GET<br>
+<strong>Query Parameters:</strong> - <code>start_date</code>: ISO 8601 date - <code>end_date</code>: ISO 8601 date - <code>attack_type</code>: Optional filter</p>
+<p><strong>Response:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"metrics"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"total_alerts"</span><span class="fu">:</span> <span class="dv">1234</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"false_positives"</span><span class="fu">:</span> <span class="dv">25</span><span class="fu">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"mttd_reduction"</span><span class="fu">:</span> <span class="fl">0.52</span><span class="fu">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"attack_breakdown"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"apt"</span><span class="fu">:</span> <span class="dv">450</span><span class="fu">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"itd"</span><span class="fu">:</span> <span class="dv">320</span><span class="fu">,</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"phishing"</span><span class="fu">:</span> <span class="dv">380</span><span class="fu">,</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"zeroday"</span><span class="fu">:</span> <span class="dv">84</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"time_series"</span><span class="fu">:</span> <span class="ot">[</span><span class="er">...</span><span class="ot">]</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="alert-management-api" class="level3">
+<h3 class="anchored" data-anchor-id="alert-management-api">Alert Management API</h3>
+<p><strong>Endpoint: <code>/api/v1/alerts</code></strong></p>
+<p><strong>Methods:</strong> - GET: List alerts (with filtering, pagination) - GET <code>/api/v1/alerts/{id}</code>: Get alert details - PUT <code>/api/v1/alerts/{id}</code>: Update alert status - POST <code>/api/v1/alerts/{id}/feedback</code>: Provide feedback</p>
+</section>
+</section>
+<section id="data-formats" class="level2">
+<h2 class="anchored" data-anchor-id="data-formats">Data Formats</h2>
+<section id="input-data-format" class="level3">
+<h3 class="anchored" data-anchor-id="input-data-format">Input Data Format</h3>
+<p><strong>Network Flow JSON:</strong> - Standardized JSON schema - Required vs.&nbsp;optional fields - Data type specifications - Validation rules</p>
+</section>
+<section id="output-data-format" class="level3">
+<h3 class="anchored" data-anchor-id="output-data-format">Output Data Format</h3>
+<p><strong>Prediction Response:</strong> - Consistent response structure - Error message format - Metadata inclusion</p>
+</section>
+</section>
+<section id="communication-protocols" class="level2">
+<h2 class="anchored" data-anchor-id="communication-protocols">Communication Protocols</h2>
+<section id="httphttps" class="level3">
+<h3 class="anchored" data-anchor-id="httphttps">HTTP/HTTPS</h3>
+<p><strong>Protocol:</strong> HTTPS (TLS 1.2+)<br>
+<strong>Methods:</strong> GET, POST, PUT, DELETE<br>
+<strong>Status Codes:</strong> Standard HTTP status codes</p>
+</section>
+<section id="message-queue-optional" class="level3">
+<h3 class="anchored" data-anchor-id="message-queue-optional">Message Queue (Optional)</h3>
+<p><strong>AWS SQS:</strong> - Asynchronous processing - High-volume scenarios - Decoupled architecture</p>
+</section>
+<section id="websocket-real-time" class="level3">
+<h3 class="anchored" data-anchor-id="websocket-real-time">WebSocket (Real-time)</h3>
+<p><strong>WebSocket API:</strong> - Real-time alert streaming - Client dashboard updates - Low-latency requirements</p>
+</section>
+</section>
+</section>
+<section id="scalability-and-performance-considerations" class="level1">
+<h1>Scalability and Performance Considerations</h1>
+<section id="expected-load" class="level2">
+<h2 class="anchored" data-anchor-id="expected-load">Expected Load</h2>
+<section id="current-estimates" class="level3">
+<h3 class="anchored" data-anchor-id="current-estimates">Current Estimates</h3>
+<p><strong>Data Volume:</strong> - ~5 million network flow records per dataset - Continuous real-time ingestion - Growing data volumes over time</p>
+<p><strong>Request Rates:</strong> - Real-time predictions: 1,000-10,000 requests/second (peak) - Batch processing: Millions of records per day - Dashboard queries: 100-1,000 requests/minute</p>
+</section>
+<section id="growth-projections" class="level3">
+<h3 class="anchored" data-anchor-id="growth-projections">Growth Projections</h3>
+<p><strong>3-Year Projections:</strong> - 3x increase in data volume - 5x increase in prediction requests - 10+ new clients - Additional attack types</p>
+</section>
+</section>
+<section id="scaling-strategies" class="level2">
+<h2 class="anchored" data-anchor-id="scaling-strategies">Scaling Strategies</h2>
+<section id="horizontal-scaling" class="level3">
+<h3 class="anchored" data-anchor-id="horizontal-scaling">Horizontal Scaling</h3>
+<p><strong>Compute Scaling:</strong> - Auto-scaling groups for Lambda functions - Kubernetes horizontal pod autoscaling - SageMaker endpoint auto-scaling - Load balancing across instances</p>
+<p><strong>Database Scaling:</strong> - Read replicas for query distribution - Connection pooling - Query optimization - Partitioning strategies (if needed)</p>
+</section>
+<section id="vertical-scaling" class="level3">
+<h3 class="anchored" data-anchor-id="vertical-scaling">Vertical Scaling</h3>
+<p><strong>Resource Optimization:</strong> - Right-size instances based on usage - Memory optimization for models - CPU optimization for processing - Storage optimization</p>
+</section>
+<section id="caching-strategies" class="level3">
+<h3 class="anchored" data-anchor-id="caching-strategies">Caching Strategies</h3>
+<p><strong>Model Caching:</strong> - In-memory model caching - Feature caching for repeated predictions - Result caching for similar queries</p>
+<p><strong>Data Caching:</strong> - Frequently accessed data in cache - Redis/ElastiCache for caching - Cache invalidation strategies</p>
+</section>
+</section>
+<section id="performance-benchmarks" class="level2">
+<h2 class="anchored" data-anchor-id="performance-benchmarks">Performance Benchmarks</h2>
+<section id="latency-targets" class="level3">
+<h3 class="anchored" data-anchor-id="latency-targets">Latency Targets</h3>
+<p><strong>Model Inference:</strong> - P50 latency: &lt;50ms - P95 latency: &lt;100ms - P99 latency: &lt;200ms</p>
+<p><strong>End-to-End Processing:</strong> - Data ingestion to alert: &lt;10 seconds - Batch processing: 1M records in &lt;1 hour</p>
+</section>
+<section id="throughput-targets" class="level3">
+<h3 class="anchored" data-anchor-id="throughput-targets">Throughput Targets</h3>
+<p><strong>Real-time Processing:</strong> - 10,000 predictions/second (per model) - 100,000 network flows/second ingestion</p>
+<p><strong>Batch Processing:</strong> - 1 million records/hour processing capacity</p>
+</section>
+</section>
+<section id="resource-optimization" class="level2">
+<h2 class="anchored" data-anchor-id="resource-optimization">Resource Optimization</h2>
+<section id="cost-optimization" class="level3">
+<h3 class="anchored" data-anchor-id="cost-optimization">Cost Optimization</h3>
+<p><strong>Right-Sizing:</strong> - Monitor and adjust instance sizes - Reserved instances for predictable workloads - Spot instances for batch processing - S3 lifecycle policies for data archival</p>
+<p><strong>Efficiency Improvements:</strong> - Model quantization (if applicable) - Batch processing optimization - Database query optimization - Pipeline efficiency improvements</p>
+</section>
+<section id="performance-tuning" class="level3">
+<h3 class="anchored" data-anchor-id="performance-tuning">Performance Tuning</h3>
+<p><strong>Database Optimization:</strong> - Index optimization - Query plan analysis - Connection pool tuning - Vacuum and analyze schedules</p>
+<p><strong>Model Optimization:</strong> - Model compression techniques - Inference optimization - Batch prediction optimization - GPU utilization (if available)</p>
+</section>
+</section>
+<section id="capacity-planning" class="level2">
+<h2 class="anchored" data-anchor-id="capacity-planning">Capacity Planning</h2>
+<section id="monitoring-and-alerts" class="level3">
+<h3 class="anchored" data-anchor-id="monitoring-and-alerts">Monitoring and Alerts</h3>
+<p><strong>Capacity Metrics:</strong> - Resource utilization trends - Growth rate projections - Capacity threshold alerts - Scaling trigger points</p>
+</section>
+<section id="planning-process" class="level3">
+<h3 class="anchored" data-anchor-id="planning-process">Planning Process</h3>
+<p><strong>Quarterly Reviews:</strong> - Review capacity metrics - Project future needs - Plan infrastructure changes - Budget planning</p>
+</section>
+</section>
+</section>
+<section id="risk-mitigation-and-contingency-plans" class="level1">
+<h1>Risk Mitigation and Contingency Plans</h1>
+<section id="technical-risks" class="level2">
+<h2 class="anchored" data-anchor-id="technical-risks">Technical Risks</h2>
+<section id="model-performance-degradation" class="level3">
+<h3 class="anchored" data-anchor-id="model-performance-degradation">Model Performance Degradation</h3>
+<p><strong>Risk:</strong> Models fail to meet performance targets or degrade over time<br>
+<strong>Probability:</strong> Medium<br>
+<strong>Impact:</strong> High</p>
+<p><strong>Mitigation:</strong> - Comprehensive model validation - Continuous performance monitoring - Automated retraining triggers - Model versioning and rollback</p>
+<p><strong>Contingency:</strong> - Immediate rollback to previous model version - Emergency retraining with latest data - Manual review and adjustment</p>
+</section>
+<section id="data-quality-issues" class="level3">
+<h3 class="anchored" data-anchor-id="data-quality-issues">Data Quality Issues</h3>
+<p><strong>Risk:</strong> Poor data quality impacts model performance<br>
+<strong>Probability:</strong> Medium<br>
+<strong>Impact:</strong> High</p>
+<p><strong>Mitigation:</strong> - Robust data validation framework - Automated quality monitoring - Data quality alerts - Regular quality audits</p>
+<p><strong>Contingency:</strong> - Pause model training until data quality restored - Data cleansing procedures - Client communication and remediation</p>
+</section>
+<section id="infrastructure-failures" class="level3">
+<h3 class="anchored" data-anchor-id="infrastructure-failures">Infrastructure Failures</h3>
+<p><strong>Risk:</strong> AWS service outages or infrastructure failures<br>
+<strong>Probability:</strong> Low<br>
+<strong>Impact:</strong> Critical</p>
+<p><strong>Mitigation:</strong> - Multi-AZ deployment - Automated failover - Regular backup procedures - Disaster recovery testing</p>
+<p><strong>Contingency:</strong> - Failover to backup region (if configured) - Manual intervention procedures - Client communication protocols - Service restoration procedures</p>
+</section>
+<section id="integration-failures" class="level3">
+<h3 class="anchored" data-anchor-id="integration-failures">Integration Failures</h3>
+<p><strong>Risk:</strong> SIEM/SOAR integration failures<br>
+<strong>Probability:</strong> Medium<br>
+<strong>Impact:</strong> Medium</p>
+<p><strong>Mitigation:</strong> - Comprehensive integration testing - API versioning - Fallback mechanisms - Monitoring and alerting</p>
+<p><strong>Contingency:</strong> - Alternative integration methods - Manual alert distribution - Temporary workarounds - Integration team escalation</p>
+</section>
+</section>
+<section id="data-and-security-risks" class="level2">
+<h2 class="anchored" data-anchor-id="data-and-security-risks">Data and Security Risks</h2>
+<section id="data-breach" class="level3">
+<h3 class="anchored" data-anchor-id="data-breach">Data Breach</h3>
+<p><strong>Risk:</strong> Unauthorized access to sensitive data<br>
+<strong>Probability:</strong> Low<br>
+<strong>Impact:</strong> Critical</p>
+<p><strong>Mitigation:</strong> - Comprehensive security controls - Encryption at rest and in transit - Access controls and monitoring - Regular security audits</p>
+<p><strong>Contingency:</strong> - Incident response procedures - Data breach notification protocols - Forensic investigation - Legal and compliance coordination</p>
+</section>
+<section id="compliance-violations" class="level3">
+<h3 class="anchored" data-anchor-id="compliance-violations">Compliance Violations</h3>
+<p><strong>Risk:</strong> Failure to meet regulatory requirements<br>
+<strong>Probability:</strong> Low<br>
+<strong>Impact:</strong> High</p>
+<p><strong>Mitigation:</strong> - Regular compliance reviews - Legal and ethics consultation - Compliance monitoring - Documentation and audit trails</p>
+<p><strong>Contingency:</strong> - Immediate compliance remediation - Legal consultation - Regulatory notification (if required) - Process improvement</p>
+</section>
+</section>
+<section id="business-risks" class="level2">
+<h2 class="anchored" data-anchor-id="business-risks">Business Risks</h2>
+<section id="project-delays" class="level3">
+<h3 class="anchored" data-anchor-id="project-delays">Project Delays</h3>
+<p><strong>Risk:</strong> Timeline delays impact business objectives<br>
+<strong>Probability:</strong> Medium<br>
+<strong>Impact:</strong> Medium</p>
+<p><strong>Mitigation:</strong> - Realistic timeline planning - Regular progress monitoring - Risk identification and mitigation - Contingency time buffers</p>
+<p><strong>Contingency:</strong> - Timeline adjustment - Resource reallocation - Scope prioritization - Stakeholder communication</p>
+</section>
+<section id="budget-overruns" class="level3">
+<h3 class="anchored" data-anchor-id="budget-overruns">Budget Overruns</h3>
+<p><strong>Risk:</strong> Project costs exceed budget<br>
+<strong>Probability:</strong> Medium<br>
+<strong>Impact:</strong> Medium</p>
+<p><strong>Mitigation:</strong> - Detailed budget planning - Regular cost monitoring - Cost optimization efforts - Contingency fund allocation</p>
+<p><strong>Contingency:</strong> - Budget review and approval - Cost reduction measures - Scope adjustment - Executive escalation</p>
+</section>
+</section>
+<section id="failure-scenarios" class="level2">
+<h2 class="anchored" data-anchor-id="failure-scenarios">Failure Scenarios</h2>
+<section id="complete-system-failure" class="level3">
+<h3 class="anchored" data-anchor-id="complete-system-failure">Complete System Failure</h3>
+<p><strong>Scenario:</strong> Complete system outage<br>
+<strong>Response:</strong> 1. Immediate incident response activation 2. System status assessment 3. Failover to backup systems (if available) 4. Manual alerting procedures 5. Client communication 6. Root cause analysis 7. System restoration 8. Post-incident review</p>
+</section>
+<section id="model-failure" class="level3">
+<h3 class="anchored" data-anchor-id="model-failure">Model Failure</h3>
+<p><strong>Scenario:</strong> All models fail simultaneously<br>
+<strong>Response:</strong> 1. Detect failure via monitoring 2. Alert operations team 3. Investigate root cause 4. Rollback to previous model versions 5. Emergency retraining (if needed) 6. Client notification 7. Performance validation</p>
+</section>
+<section id="data-pipeline-failure" class="level3">
+<h3 class="anchored" data-anchor-id="data-pipeline-failure">Data Pipeline Failure</h3>
+<p><strong>Scenario:</strong> Data ingestion or processing pipeline fails<br>
+<strong>Response:</strong> 1. Detect pipeline failure 2. Assess data loss/gap 3. Pause model training (if needed) 4. Pipeline restoration 5. Data backfill procedures 6. Validation and verification 7. Resume normal operations</p>
+</section>
+</section>
+<section id="risk-monitoring" class="level2">
+<h2 class="anchored" data-anchor-id="risk-monitoring">Risk Monitoring</h2>
+<section id="risk-register" class="level3">
+<h3 class="anchored" data-anchor-id="risk-register">Risk Register</h3>
+<p><strong>Maintenance:</strong> - Regular risk assessment updates - Risk probability and impact reviews - Mitigation effectiveness evaluation - New risk identification</p>
+</section>
+<section id="risk-reporting" class="level3">
+<h3 class="anchored" data-anchor-id="risk-reporting">Risk Reporting</h3>
+<p><strong>Frequency:</strong> - Weekly risk status updates - Monthly comprehensive risk review - Quarterly risk assessment - Ad-hoc risk escalation</p>
+</section>
+</section>
+</section>
+<section id="pilot-phase-implementation-plan" class="level1">
+<h1>Pilot Phase Implementation Plan</h1>
+<section id="pilot-scope" class="level2">
+<h2 class="anchored" data-anchor-id="pilot-scope">Pilot Scope</h2>
+<section id="target-user-groups" class="level3">
+<h3 class="anchored" data-anchor-id="target-user-groups">Target User Groups</h3>
+<p><strong>Primary Users:</strong> - 2-3 select enterprise clients (volunteer participants) - Client SOC teams (5-10 analysts per client) - CyberGuard operations team</p>
+<p><strong>Selection Criteria:</strong> - Clients with robust security infrastructure - Willingness to provide feedback - Representative network environments - Strong relationship with CyberGuard</p>
+</section>
+<section id="limited-feature-sets" class="level3">
+<h3 class="anchored" data-anchor-id="limited-feature-sets">Limited Feature Sets</h3>
+<p><strong>Pilot Features:</strong> - 2 attack types: APT and Phishing (highest priority) - Real-time detection only (batch processing excluded) - Basic alerting (advanced analytics excluded) - Single SIEM integration (Splunk or QRadar)</p>
+<p><strong>Excluded Features:</strong> - ITD and Zero-day models (post-pilot) - Advanced analytics and reporting - Multiple SIEM integrations - Client portal (basic dashboard only)</p>
+</section>
+<section id="data-subsets" class="level3">
+<h3 class="anchored" data-anchor-id="data-subsets">Data Subsets</h3>
+<p><strong>Pilot Data:</strong> - 6 months of historical data per client - Real-time data from pilot clients only - Anonymized data for testing - Limited to 2 attack types</p>
+<p><strong>Data Volume:</strong> - ~1 million records per client - Real-time: 1,000-5,000 flows/second - Manageable for initial testing</p>
+</section>
+</section>
+<section id="pilot-timeline" class="level2">
+<h2 class="anchored" data-anchor-id="pilot-timeline">Pilot Timeline</h2>
+<section id="phase-1-preparation-2-weeks" class="level3">
+<h3 class="anchored" data-anchor-id="phase-1-preparation-2-weeks">Phase 1: Preparation (2 weeks)</h3>
+<p><strong>Week 1:</strong> - Client selection and agreements - Pilot environment setup - Data access and integration setup - Team training</p>
+<p><strong>Week 2:</strong> - Model deployment to pilot environment - Integration testing - Monitoring setup - Documentation preparation</p>
+</section>
+<section id="phase-2-soft-launch-1-week" class="level3">
+<h3 class="anchored" data-anchor-id="phase-2-soft-launch-1-week">Phase 2: Soft Launch (1 week)</h3>
+<p><strong>Activities:</strong> - Deploy to pilot clients (read-only mode) - Shadow monitoring (no active alerting) - System validation - Performance baseline establishment</p>
+</section>
+<section id="phase-3-active-pilot-4-weeks" class="level3">
+<h3 class="anchored" data-anchor-id="phase-3-active-pilot-4-weeks">Phase 3: Active Pilot (4 weeks)</h3>
+<p><strong>Week 1-2:</strong> - Enable active alerting - Monitor performance and feedback - Daily check-ins with client teams - Issue identification and resolution</p>
+<p><strong>Week 3-4:</strong> - Refinement based on feedback - Performance optimization - Additional training if needed - Data collection for evaluation</p>
+</section>
+<section id="phase-4-evaluation-1-week" class="level3">
+<h3 class="anchored" data-anchor-id="phase-4-evaluation-1-week">Phase 4: Evaluation (1 week)</h3>
+<p><strong>Activities:</strong> - Comprehensive performance evaluation - Client feedback collection - Success criteria assessment - Go/no-go decision preparation</p>
+<p><strong>Total Duration:</strong> 8 weeks</p>
+</section>
+</section>
+<section id="success-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="success-metrics">Success Metrics</h2>
+<section id="technical-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="technical-metrics">Technical Metrics</h3>
+<p><strong>Model Performance:</strong> - Precision: &gt;80% (pilot target, &lt;85% production) - Recall: &gt;75% (pilot target, &lt;80% production) - False Positive Rate: &lt;3% (pilot target, &lt;2% production) - MTTD reduction: ≥40% (pilot target, ≥50% production)</p>
+<p><strong>System Performance:</strong> - Uptime: &gt;99% - Latency: &lt;200ms (pilot target, &lt;100ms production) - Integration stability: &lt;5 integration errors/week</p>
+</section>
+<section id="business-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="business-metrics">Business Metrics</h3>
+<p><strong>User Adoption:</strong> - Active users: &gt;80% of target SOC analysts - Daily usage: &gt;4 hours per analyst - Positive feedback: &gt;70% satisfaction rate</p>
+<p><strong>Operational Metrics:</strong> - Alert accuracy: &gt;75% actionable alerts - Time savings: ≥30% reduction in manual analysis - Client retention: No pilot client churn</p>
+</section>
+</section>
+<section id="rollback-procedures-1" class="level2">
+<h2 class="anchored" data-anchor-id="rollback-procedures-1">Rollback Procedures</h2>
+<section id="automatic-rollback-triggers" class="level3">
+<h3 class="anchored" data-anchor-id="automatic-rollback-triggers">Automatic Rollback Triggers</h3>
+<p><strong>Performance Thresholds:</strong> - False positive rate &gt;5% - System uptime &lt;95% - Critical integration failures - Data quality issues</p>
+</section>
+<section id="manual-rollback-process" class="level3">
+<h3 class="anchored" data-anchor-id="manual-rollback-process">Manual Rollback Process</h3>
+<ol type="1">
+<li><strong>Decision:</strong> Pilot team decides on rollback</li>
+<li><strong>Notification:</strong> Notify stakeholders</li>
+<li><strong>Execution:</strong> Disable alerting, revert to previous state</li>
+<li><strong>Investigation:</strong> Root cause analysis</li>
+<li><strong>Remediation:</strong> Fix issues</li>
+<li><strong>Re-deployment:</strong> Resume pilot after fixes</li>
+</ol>
+</section>
+<section id="rollback-criteria" class="level3">
+<h3 class="anchored" data-anchor-id="rollback-criteria">Rollback Criteria</h3>
+<p><strong>Immediate Rollback:</strong> - Security incidents - Data breaches - Critical system failures - Compliance violations</p>
+<p><strong>Planned Rollback:</strong> - Performance below acceptable thresholds - Client requests - Major integration issues - Extended system instability</p>
+</section>
+</section>
+<section id="criteria-for-advancing-to-production" class="level2">
+<h2 class="anchored" data-anchor-id="criteria-for-advancing-to-production">Criteria for Advancing to Production</h2>
+<section id="technical-criteria" class="level3">
+<h3 class="anchored" data-anchor-id="technical-criteria">Technical Criteria</h3>
+<p><strong>Must Have:</strong> - All technical success metrics met - System stability demonstrated (4 weeks) - Integration reliability confirmed - Performance targets achieved</p>
+<p><strong>Should Have:</strong> - Model performance within 5% of production targets - Zero critical security issues - Comprehensive documentation complete - Monitoring and alerting validated</p>
+</section>
+<section id="business-criteria-1" class="level3">
+<h3 class="anchored" data-anchor-id="business-criteria-1">Business Criteria</h3>
+<p><strong>Must Have:</strong> - Positive client feedback (&gt;70% satisfaction) - Client commitment to production deployment - Business value demonstrated - ROI projections validated</p>
+<p><strong>Should Have:</strong> - Additional client interest - Positive stakeholder feedback - Budget approval for production - Resource availability confirmed</p>
+</section>
+<section id="gono-go-decision" class="level3">
+<h3 class="anchored" data-anchor-id="gono-go-decision">Go/No-Go Decision</h3>
+<p><strong>Decision Makers:</strong> - Executive sponsor (Eleanor Vance) - Technical lead - Client representatives - Project manager</p>
+<p><strong>Decision Timeline:</strong> - Evaluation week: Comprehensive assessment - Decision meeting: Week 9 - Production planning: If go decision, immediate planning</p>
+</section>
+</section>
+</section>
+<section id="pilot-phase-business-value-estimation" class="level1">
+<h1>Pilot Phase Business Value Estimation</h1>
+<section id="baseline-measurements" class="level2">
+<h2 class="anchored" data-anchor-id="baseline-measurements">Baseline Measurements</h2>
+<section id="current-state-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="current-state-metrics">Current State Metrics</h3>
+<p><strong>Detection Performance:</strong> - Current MTTD: 4-6 hours (varies by attack type) - Current False Positive Rate: 8-12% - Current Precision: 65-75% - Current Recall: 60-70%</p>
+<p><strong>Operational Metrics:</strong> - Manual analysis time: 2-3 hours per alert - SOC analyst capacity: 50-100 alerts/day - Client satisfaction: 75% (baseline) - Alert fatigue: High (frequent false positives)</p>
+<p><strong>Financial Baseline:</strong> - Current detection costs: $X per incident - Client retention rate: 85% - Revenue per client: $Y annually - Operational efficiency: Baseline established</p>
+</section>
+</section>
+<section id="projected-improvements" class="level2">
+<h2 class="anchored" data-anchor-id="projected-improvements">Projected Improvements</h2>
+<section id="detection-performance-improvements" class="level3">
+<h3 class="anchored" data-anchor-id="detection-performance-improvements">Detection Performance Improvements</h3>
+<p><strong>MTTD Reduction:</strong> - Target: 50% reduction (2-3 hours) - Pilot target: 40% reduction (2.4-3.6 hours) - Estimated improvement: 1.6-2.4 hours saved per detection</p>
+<p><strong>False Positive Reduction:</strong> - Target: &lt;2% (from 8-12%) - Pilot target: &lt;3% (from 8-12%) - Estimated: 70-80% reduction in false positives</p>
+<p><strong>Accuracy Improvements:</strong> - Precision: 65-75% → 80-85% (pilot: 75-80%) - Recall: 60-70% → 75-80% (pilot: 70-75%) - Overall accuracy improvement: 15-20%</p>
+</section>
+<section id="operational-efficiency-gains" class="level3">
+<h3 class="anchored" data-anchor-id="operational-efficiency-gains">Operational Efficiency Gains</h3>
+<p><strong>Time Savings:</strong> - Reduced manual analysis: 30-40% time savings - Faster threat response: 40-50% faster - Reduced alert fatigue: 70-80% fewer false positives - Estimated: 1-1.5 hours saved per analyst per day</p>
+<p><strong>Capacity Improvements:</strong> - Increased analyst capacity: 30-40% more alerts handled - Better resource utilization - Improved analyst satisfaction</p>
+</section>
+<section id="business-impact" class="level3">
+<h3 class="anchored" data-anchor-id="business-impact">Business Impact</h3>
+<p><strong>Client Retention:</strong> - Current: 85% retention rate - Target: 90-95% retention (5-10% improvement) - Pilot: Maintain 85%+ (no degradation)</p>
+<p><strong>Client Acquisition:</strong> - Enhanced value proposition - Competitive differentiation - Market positioning improvement</p>
+</section>
+</section>
+<section id="risk-adjusted-value-calculations" class="level2">
+<h2 class="anchored" data-anchor-id="risk-adjusted-value-calculations">Risk-Adjusted Value Calculations</h2>
+<section id="revenue-impact" class="level3">
+<h3 class="anchored" data-anchor-id="revenue-impact">Revenue Impact</h3>
+<p><strong>Client Retention Value:</strong> - Current clients: N clients - Retention improvement: 5-10% - Revenue per client: $Y annually - 3-year retention value: $Z (calculated)</p>
+<p><strong>New Client Acquisition:</strong> - Target: 10-15% increase in 2 years - Average client value: $Y annually - 3-year acquisition value: $W (calculated)</p>
+<p><strong>Service Expansion:</strong> - Enhanced service offerings - Premium pricing potential - Additional revenue streams</p>
+</section>
+<section id="cost-savings" class="level3">
+<h3 class="anchored" data-anchor-id="cost-savings">Cost Savings</h3>
+<p><strong>Operational Efficiency:</strong> - Reduced manual analysis time - Lower false positive handling costs - Improved resource utilization - Estimated annual savings: $X</p>
+<p><strong>Incident Cost Reduction:</strong> - Faster detection = lower incident costs - Reduced data exfiltration - Lower remediation costs - Estimated savings per incident: $Y</p>
+</section>
+<section id="pilot-phase-roi" class="level3">
+<h3 class="anchored" data-anchor-id="pilot-phase-roi">Pilot Phase ROI</h3>
+<p><strong>Pilot Investment:</strong> - Infrastructure: $X - Personnel: $Y - Client engagement: $Z - Total pilot cost: $Total</p>
+<p><strong>Pilot Returns:</strong> - Efficiency gains: $A - Client satisfaction: Qualitative - Learning and refinement: Value in production success - Risk mitigation: Value of identifying issues early</p>
+<p><strong>Pilot ROI Calculation:</strong> - Net pilot value: Returns - Investment - ROI: (Net Value / Investment) × 100% - Break-even analysis</p>
+</section>
+</section>
+<section id="methodology-for-measuring-outcomes" class="level2">
+<h2 class="anchored" data-anchor-id="methodology-for-measuring-outcomes">Methodology for Measuring Outcomes</h2>
+<section id="measurement-framework" class="level3">
+<h3 class="anchored" data-anchor-id="measurement-framework">Measurement Framework</h3>
+<p><strong>Data Collection:</strong> - Automated metrics collection - Client feedback surveys - Operational logs and reports - Financial tracking</p>
+<p><strong>Measurement Frequency:</strong> - Daily: Automated metrics - Weekly: Performance reports - Monthly: Comprehensive analysis - End of pilot: Final evaluation</p>
+</section>
+<section id="key-performance-indicators" class="level3">
+<h3 class="anchored" data-anchor-id="key-performance-indicators">Key Performance Indicators</h3>
+<p><strong>Technical KPIs:</strong> - MTTD reduction percentage - False positive rate - Precision and recall - System uptime and latency</p>
+<p><strong>Operational KPIs:</strong> - Time savings per analyst - Alert handling capacity - Analyst satisfaction scores - Integration stability</p>
+<p><strong>Business KPIs:</strong> - Client satisfaction scores - Client retention rate - Cost savings realized - Revenue impact (if measurable in pilot)</p>
+</section>
+<section id="comparison-methodology" class="level3">
+<h3 class="anchored" data-anchor-id="comparison-methodology">Comparison Methodology</h3>
+<p><strong>Before/After Comparison:</strong> - Baseline metrics established pre-pilot - Pilot metrics collected during pilot - Comparison and delta calculation - Statistical significance testing</p>
+<p><strong>Control Group (if applicable):</strong> - Compare pilot clients vs.&nbsp;non-pilot clients - Isolate pilot impact - Validate improvements</p>
+</section>
+<section id="reporting" class="level3">
+<h3 class="anchored" data-anchor-id="reporting">Reporting</h3>
+<p><strong>Weekly Reports:</strong> - Performance metrics dashboard - Issue tracking and resolution - Client feedback summary</p>
+<p><strong>Monthly Reports:</strong> - Comprehensive performance analysis - Business value assessment - Risk and issue management</p>
+<p><strong>Final Pilot Report:</strong> - Complete performance evaluation - Business value quantification - Lessons learned - Production readiness assessment - Go/no-go recommendation</p>
+</section>
+</section>
+</section>
+<section id="production-phase-implementation-plan" class="level1">
+<h1>Production Phase Implementation Plan</h1>
+<section id="phased-rollout-strategy" class="level2">
+<h2 class="anchored" data-anchor-id="phased-rollout-strategy">Phased Rollout Strategy</h2>
+<section id="phase-1-foundation-weeks-1-4" class="level3">
+<h3 class="anchored" data-anchor-id="phase-1-foundation-weeks-1-4">Phase 1: Foundation (Weeks 1-4)</h3>
+<p><strong>Infrastructure Scaling:</strong> - Production AWS environment setup - Database scaling and optimization - High-availability configuration - Monitoring and alerting expansion</p>
+<p><strong>Model Deployment:</strong> - Deploy all 4 models to production - Model endpoint configuration - Load testing and optimization - Performance validation</p>
+<p><strong>Integration Setup:</strong> - SIEM/SOAR integrations for all clients - API endpoint deployment - Client portal deployment - Integration testing</p>
+</section>
+<section id="phase-2-limited-production-weeks-5-8" class="level3">
+<h3 class="anchored" data-anchor-id="phase-2-limited-production-weeks-5-8">Phase 2: Limited Production (Weeks 5-8)</h3>
+<p><strong>Client Onboarding:</strong> - Onboard 5-10 priority clients - Gradual traffic increase - Close monitoring and support - Issue resolution and optimization</p>
+<p><strong>Feature Activation:</strong> - Enable all 4 attack type models - Activate batch processing - Enable advanced analytics - Client portal features</p>
+</section>
+<section id="phase-3-full-production-weeks-9-12" class="level3">
+<h3 class="anchored" data-anchor-id="phase-3-full-production-weeks-9-12">Phase 3: Full Production (Weeks 9-12)</h3>
+<p><strong>Scale-Up:</strong> - Onboard remaining clients - Full traffic volume - All features active - Production-grade operations</p>
+<p><strong>Optimization:</strong> - Performance tuning - Cost optimization - Process refinement - Documentation completion</p>
+</section>
+</section>
+<section id="user-onboarding-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="user-onboarding-procedures">User Onboarding Procedures</h2>
+<section id="client-onboarding-process" class="level3">
+<h3 class="anchored" data-anchor-id="client-onboarding-process">Client Onboarding Process</h3>
+<p><strong>Pre-Onboarding:</strong> - Client agreement and contracts - Data access setup - Security and compliance review - Integration requirements assessment</p>
+<p><strong>Onboarding Steps:</strong> 1. <strong>Kickoff Meeting:</strong> Project introduction, timeline, expectations 2. <strong>Technical Setup:</strong> SIEM/SOAR integration, API access, data pipeline 3. <strong>Training Delivery:</strong> SOC team training, documentation, best practices 4. <strong>Soft Launch:</strong> Shadow mode (1 week), monitoring only 5. <strong>Go-Live:</strong> Active alerting, full functionality 6. <strong>Support Period:</strong> 2-4 weeks intensive support</p>
+</section>
+<section id="training-delivery" class="level3">
+<h3 class="anchored" data-anchor-id="training-delivery">Training Delivery</h3>
+<p><strong>SOC Team Training:</strong> - Model capabilities and limitations - Alert interpretation and prioritization - Integration with existing workflows - Best practices and troubleshooting</p>
+<p><strong>Training Format:</strong> - Live training sessions (4-6 hours) - Video tutorials and documentation - Hands-on exercises - Q&amp;A sessions</p>
+<p><strong>Training Timeline:</strong> - Week 1: Training delivery - Week 2: Practice and support - Week 3: Go-live preparation - Ongoing: Refresher training as needed</p>
+</section>
+</section>
+<section id="change-management-protocols" class="level2">
+<h2 class="anchored" data-anchor-id="change-management-protocols">Change Management Protocols</h2>
+<section id="communication-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="communication-strategy">Communication Strategy</h3>
+<p><strong>Stakeholder Communication:</strong> - Executive updates (monthly) - Client communications (weekly during onboarding) - Team updates (weekly) - Status reports and dashboards</p>
+<p><strong>Change Announcements:</strong> - Advance notice for major changes - Change impact assessment - Rollback plans communicated - Support availability</p>
+</section>
+<section id="change-control-process" class="level3">
+<h3 class="anchored" data-anchor-id="change-control-process">Change Control Process</h3>
+<p><strong>Change Types:</strong> - <strong>Standard:</strong> Routine updates, low risk - <strong>Normal:</strong> Moderate changes, some risk - <strong>Emergency:</strong> Critical fixes, immediate need</p>
+<p><strong>Change Process:</strong> 1. Change request submission 2. Impact assessment 3. Approval (based on change type) 4. Implementation 5. Verification 6. Documentation</p>
+</section>
+<section id="rollback-procedures-2" class="level3">
+<h3 class="anchored" data-anchor-id="rollback-procedures-2">Rollback Procedures</h3>
+<p><strong>Change Rollback:</strong> - Automated rollback for failed deployments - Manual rollback procedures - Communication protocols - Post-rollback analysis</p>
+</section>
+</section>
+<section id="system-cutover-activities" class="level2">
+<h2 class="anchored" data-anchor-id="system-cutover-activities">System Cutover Activities</h2>
+<section id="cutover-planning" class="level3">
+<h3 class="anchored" data-anchor-id="cutover-planning">Cutover Planning</h3>
+<p><strong>Cutover Strategy:</strong> - Blue-green deployment - Gradual traffic migration - Zero-downtime cutover - Rollback capabilities</p>
+<p><strong>Cutover Timeline:</strong> - Pre-cutover: Final testing and validation - Cutover window: Low-traffic period - Post-cutover: Monitoring and validation - Stabilization: 24-48 hours</p>
+</section>
+<section id="cutover-checklist" class="level3">
+<h3 class="anchored" data-anchor-id="cutover-checklist">Cutover Checklist</h3>
+<p><strong>Pre-Cutover:</strong> - [ ] All testing completed - [ ] Stakeholders notified - [ ] Rollback plan prepared - [ ] Support team on standby - [ ] Monitoring dashboards ready</p>
+<p><strong>Cutover:</strong> - [ ] Traffic migration initiated - [ ] System health monitoring - [ ] Performance validation - [ ] Issue detection and resolution</p>
+<p><strong>Post-Cutover:</strong> - [ ] System stability confirmed - [ ] Performance metrics validated - [ ] Stakeholder notification - [ ] Documentation updated</p>
+</section>
+</section>
+<section id="production-infrastructure-scaling" class="level2">
+<h2 class="anchored" data-anchor-id="production-infrastructure-scaling">Production Infrastructure Scaling</h2>
+<section id="infrastructure-requirements" class="level3">
+<h3 class="anchored" data-anchor-id="infrastructure-requirements">Infrastructure Requirements</h3>
+<p><strong>Compute Resources:</strong> - Auto-scaling groups configured - Load balancers deployed - Sufficient capacity for peak loads - Multi-AZ deployment</p>
+<p><strong>Database Scaling:</strong> - Production database instance sizing - Read replicas for query distribution - Backup and recovery configured - Performance monitoring</p>
+<p><strong>Storage:</strong> - S3 buckets for model artifacts - Sufficient storage capacity - Lifecycle policies configured - Backup and archival</p>
+</section>
+<section id="scaling-triggers" class="level3">
+<h3 class="anchored" data-anchor-id="scaling-triggers">Scaling Triggers</h3>
+<p><strong>Automatic Scaling:</strong> - CPU utilization &gt;70% - Memory usage &gt;80% - Request queue depth &gt;threshold - Latency &gt;target</p>
+<p><strong>Manual Scaling:</strong> - Planned capacity increases - Seasonal adjustments - Growth projections</p>
+</section>
+</section>
+<section id="data-migration-procedures" class="level2">
+<h2 class="anchored" data-anchor-id="data-migration-procedures">Data Migration Procedures</h2>
+<section id="migration-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="migration-strategy">Migration Strategy</h3>
+<p><strong>Data Migration:</strong> - Historical data migration (if needed) - Incremental data sync - Data validation and verification - Migration rollback plan</p>
+<p><strong>Migration Timeline:</strong> - Pre-migration: Planning and preparation - Migration: Execution and monitoring - Post-migration: Validation and cleanup</p>
+</section>
+<section id="migration-validation" class="level3">
+<h3 class="anchored" data-anchor-id="migration-validation">Migration Validation</h3>
+<p><strong>Data Validation:</strong> - Record count verification - Data integrity checks - Performance validation - Client verification</p>
+</section>
+</section>
+<section id="user-access-provisioning" class="level2">
+<h2 class="anchored" data-anchor-id="user-access-provisioning">User Access Provisioning</h2>
+<section id="access-management" class="level3">
+<h3 class="anchored" data-anchor-id="access-management">Access Management</h3>
+<p><strong>User Provisioning:</strong> - Client user account creation - Role-based access assignment - API key generation - Initial password setup</p>
+<p><strong>Access Controls:</strong> - Least privilege principles - Client data isolation - Audit logging - Regular access reviews</p>
+</section>
+<section id="access-types" class="level3">
+<h3 class="anchored" data-anchor-id="access-types">Access Types</h3>
+<p><strong>Portal Access:</strong> - Dashboard access - Alert management - Reporting access</p>
+<p><strong>API Access:</strong> - API key authentication - Rate limiting - Usage monitoring</p>
+<p><strong>Integration Access:</strong> - SIEM/SOAR integration credentials - Secure connection setup - Access monitoring</p>
+</section>
+</section>
+<section id="training-delivery-timelines" class="level2">
+<h2 class="anchored" data-anchor-id="training-delivery-timelines">Training Delivery Timelines</h2>
+<section id="training-schedule" class="level3">
+<h3 class="anchored" data-anchor-id="training-schedule">Training Schedule</h3>
+<p><strong>Week 1: Initial Training</strong> - Day 1-2: System overview and capabilities - Day 3-4: Hands-on training - Day 5: Q&amp;A and assessment</p>
+<p><strong>Week 2: Advanced Training</strong> - Day 1-2: Advanced features and best practices - Day 3-4: Troubleshooting and support - Day 5: Certification (if applicable)</p>
+<p><strong>Ongoing:</strong> - Monthly refresher sessions - New feature training - Best practice updates</p>
+</section>
+</section>
+<section id="communication-strategies" class="level2">
+<h2 class="anchored" data-anchor-id="communication-strategies">Communication Strategies</h2>
+<section id="internal-communication" class="level3">
+<h3 class="anchored" data-anchor-id="internal-communication">Internal Communication</h3>
+<p><strong>Team Communication:</strong> - Daily standups - Weekly team meetings - Slack/Teams channels - Documentation wiki</p>
+</section>
+<section id="client-communication" class="level3">
+<h3 class="anchored" data-anchor-id="client-communication">Client Communication</h3>
+<p><strong>Client Updates:</strong> - Weekly status reports - Monthly performance reviews - Quarterly business reviews - Ad-hoc communications</p>
+<p><strong>Support Channels:</strong> - Help desk/ticketing system - Email support - Phone support (for critical issues) - Client portal messaging</p>
+</section>
+<section id="organization-wide-adoption" class="level3">
+<h3 class="anchored" data-anchor-id="organization-wide-adoption">Organization-Wide Adoption</h3>
+<p><strong>Change Management:</strong> - Executive sponsorship - Champion network - Success stories and case studies - Training and support</p>
+<p><strong>Adoption Metrics:</strong> - User adoption rates - Feature utilization - Client satisfaction - Business impact</p>
+</section>
+</section>
+</section>
+<section id="post-production-monitoring-plan" class="level1">
+<h1>Post-Production Monitoring Plan</h1>
+<section id="automated-monitoring-dashboards" class="level2">
+<h2 class="anchored" data-anchor-id="automated-monitoring-dashboards">Automated Monitoring Dashboards</h2>
+<section id="real-time-dashboards" class="level3">
+<h3 class="anchored" data-anchor-id="real-time-dashboards">Real-Time Dashboards</h3>
+<p><strong>System Health Dashboard:</strong> - Infrastructure metrics (CPU, memory, network) - Service health status - Error rates and types - Latency metrics</p>
+<p><strong>Model Performance Dashboard:</strong> - Prediction accuracy metrics - False positive rates - MTTD trends - Per-attack-type performance</p>
+<p><strong>Business Metrics Dashboard:</strong> - Alert volumes and trends - Client usage statistics - Business KPI tracking - Revenue impact metrics</p>
+</section>
+<section id="custom-dashboards" class="level3">
+<h3 class="anchored" data-anchor-id="custom-dashboards">Custom Dashboards</h3>
+<p><strong>Client-Specific Dashboards:</strong> - Per-client performance metrics - Client alert trends - Client satisfaction indicators</p>
+<p><strong>Operational Dashboards:</strong> - Team performance metrics - Support ticket trends - System utilization - Cost tracking</p>
+</section>
+</section>
+<section id="alert-systems" class="level2">
+<h2 class="anchored" data-anchor-id="alert-systems">Alert Systems</h2>
+<section id="alert-configuration" class="level3">
+<h3 class="anchored" data-anchor-id="alert-configuration">Alert Configuration</h3>
+<p><strong>Alert Types:</strong> - <strong>Critical:</strong> System failures, security incidents - <strong>Warning:</strong> Performance degradation, capacity issues - <strong>Info:</strong> Status updates, scheduled events</p>
+<p><strong>Alert Channels:</strong> - Email notifications - SMS (for critical alerts) - Slack/Teams integration - PagerDuty (for on-call)</p>
+</section>
+<section id="alert-thresholds" class="level3">
+<h3 class="anchored" data-anchor-id="alert-thresholds">Alert Thresholds</h3>
+<p><strong>Performance Alerts:</strong> - False positive rate &gt;2.5% - Model accuracy &lt;80% - MTTD increase &gt;20% - System latency &gt;200ms (p95)</p>
+<p><strong>System Alerts:</strong> - System uptime &lt;99% - Error rate &gt;1% - Database connection failures - Integration failures</p>
+<p><strong>Business Alerts:</strong> - Client churn risk - Unusual alert volume changes - Revenue impact indicators</p>
+</section>
+</section>
+<section id="performance-tracking-mechanisms" class="level2">
+<h2 class="anchored" data-anchor-id="performance-tracking-mechanisms">Performance Tracking Mechanisms</h2>
+<section id="model-performance-monitoring" class="level3">
+<h3 class="anchored" data-anchor-id="model-performance-monitoring">Model Performance Monitoring</h3>
+<p><strong>Continuous Monitoring:</strong> - Real-time prediction accuracy - Per-attack-type performance - Feature drift detection - Model version comparison</p>
+<p><strong>Performance Metrics:</strong> - Precision, Recall, F1-Score (daily) - ROC-AUC (weekly) - Confusion matrices (weekly) - MTTD trends (daily)</p>
+</section>
+<section id="system-performance-monitoring" class="level3">
+<h3 class="anchored" data-anchor-id="system-performance-monitoring">System Performance Monitoring</h3>
+<p><strong>Infrastructure Metrics:</strong> - Resource utilization trends - Capacity planning indicators - Cost optimization opportunities - Performance bottlenecks</p>
+<p><strong>Application Metrics:</strong> - Request rates and patterns - Error rates and types - Latency distributions - Throughput metrics</p>
+</section>
+</section>
+<section id="model-performance-degradation-detection" class="level2">
+<h2 class="anchored" data-anchor-id="model-performance-degradation-detection">Model Performance Degradation Detection</h2>
+<section id="detection-mechanisms-1" class="level3">
+<h3 class="anchored" data-anchor-id="detection-mechanisms-1">Detection Mechanisms</h3>
+<p><strong>Automated Detection:</strong> - Statistical tests on performance metrics - Trend analysis and anomaly detection - Comparison with baseline performance - Alert generation on degradation</p>
+<p><strong>Detection Frequency:</strong> - Real-time: Continuous monitoring - Daily: Comprehensive performance review - Weekly: Trend analysis - Monthly: Detailed performance audit</p>
+</section>
+<section id="degradation-response" class="level3">
+<h3 class="anchored" data-anchor-id="degradation-response">Degradation Response</h3>
+<p><strong>Response Procedures:</strong> 1. <strong>Detection:</strong> Automated or manual detection 2. <strong>Investigation:</strong> Root cause analysis 3. <strong>Assessment:</strong> Severity and impact evaluation 4. <strong>Action:</strong> Retraining, rollback, or adjustment 5. <strong>Validation:</strong> Performance verification 6. <strong>Documentation:</strong> Incident logging</p>
+</section>
+</section>
+<section id="data-quality-monitoring-1" class="level2">
+<h2 class="anchored" data-anchor-id="data-quality-monitoring-1">Data Quality Monitoring</h2>
+<section id="quality-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="quality-metrics">Quality Metrics</h3>
+<p><strong>Completeness Monitoring:</strong> - Missing data percentages - Data freshness indicators - Gap detection - Client-specific quality metrics</p>
+<p><strong>Accuracy Monitoring:</strong> - Validation failure rates - Data error detection - Consistency checks - Client data quality scores</p>
+</section>
+<section id="quality-alerts" class="level3">
+<h3 class="anchored" data-anchor-id="quality-alerts">Quality Alerts</h3>
+<p><strong>Alert Thresholds:</strong> - Missing data &gt;10% - Validation failures &gt;5% - Data freshness &gt;1 hour delay - Quality score &lt;90%</p>
+<p><strong>Response Procedures:</strong> - Immediate investigation - Client notification (if needed) - Data quality remediation - Root cause analysis</p>
+</section>
+</section>
+<section id="business-impact-measurement" class="level2">
+<h2 class="anchored" data-anchor-id="business-impact-measurement">Business Impact Measurement</h2>
+<section id="business-metrics-1" class="level3">
+<h3 class="anchored" data-anchor-id="business-metrics-1">Business Metrics</h3>
+<p><strong>Client Metrics:</strong> - Client retention rates - Client satisfaction scores - Client usage statistics - Client value metrics</p>
+<p><strong>Revenue Metrics:</strong> - Revenue per client - Revenue growth trends - Service expansion metrics - ROI tracking</p>
+<p><strong>Operational Metrics:</strong> - Cost per detection - Efficiency gains - Resource utilization - Operational savings</p>
+</section>
+<section id="impact-reporting" class="level3">
+<h3 class="anchored" data-anchor-id="impact-reporting">Impact Reporting</h3>
+<p><strong>Reporting Frequency:</strong> - Weekly: Operational metrics - Monthly: Business impact report - Quarterly: Comprehensive business review - Annually: ROI assessment</p>
+<p><strong>Report Contents:</strong> - Performance summary - Business impact analysis - Client feedback - Recommendations - Action items</p>
+</section>
+</section>
+<section id="ongoing-maintenance-procedures-1" class="level2">
+<h2 class="anchored" data-anchor-id="ongoing-maintenance-procedures-1">Ongoing Maintenance Procedures</h2>
+<section id="regular-maintenance" class="level3">
+<h3 class="anchored" data-anchor-id="regular-maintenance">Regular Maintenance</h3>
+<p><strong>Daily:</strong> - Dashboard review - Alert monitoring - Issue resolution - Performance checks</p>
+<p><strong>Weekly:</strong> - Performance analysis - Quality assessment - Client feedback review - Team coordination</p>
+<p><strong>Monthly:</strong> - Comprehensive system review - Performance optimization - Capacity planning - Security audit</p>
+<p><strong>Quarterly:</strong> - Business review - Strategic planning - Technology assessment - Roadmap updates</p>
+</section>
+<section id="proactive-maintenance-1" class="level3">
+<h3 class="anchored" data-anchor-id="proactive-maintenance-1">Proactive Maintenance</h3>
+<p><strong>Continuous Improvement:</strong> - Performance optimization - Cost optimization - Feature enhancements - Process improvements</p>
+<p><strong>Technology Updates:</strong> - Dependency updates - Security patches - Infrastructure improvements - Tool and technology evaluation</p>
+</section>
+</section>
+<section id="maintenance-schedule" class="level2">
+<h2 class="anchored" data-anchor-id="maintenance-schedule">Maintenance Schedule</h2>
+<section id="scheduled-maintenance-windows" class="level3">
+<h3 class="anchored" data-anchor-id="scheduled-maintenance-windows">Scheduled Maintenance Windows</h3>
+<p><strong>Monthly Maintenance:</strong> - Low-traffic period (e.g., Sunday 2-4 AM) - Advance notification (1 week) - Minimal service disruption - Rollback plan</p>
+<p><strong>Quarterly Maintenance:</strong> - Comprehensive system updates - Extended maintenance window - Client communication - Post-maintenance validation</p>
+</section>
+<section id="emergency-maintenance" class="level3">
+<h3 class="anchored" data-anchor-id="emergency-maintenance">Emergency Maintenance</h3>
+<p><strong>Procedures:</strong> - Immediate response team activation - Impact assessment - Client notification - Rapid resolution - Post-incident review</p>
+<hr>
+</section>
+</section>
+</section>
+<section id="appendices" class="level1">
+<h1>Appendices</h1>
+<section id="appendix-a-glossary" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-a-glossary">Appendix A: Glossary</h2>
+<p><strong>APT:</strong> Advanced Persistent Threat<br>
+<strong>ITD:</strong> Insider Threat Detection<br>
+<strong>MTTD:</strong> Mean Time to Detect<br>
+<strong>SIEM:</strong> Security Information and Event Management<br>
+<strong>SOAR:</strong> Security Orchestration, Automation and Response<br>
+<strong>ROC-AUC:</strong> Receiver Operating Characteristic - Area Under Curve<br>
+<strong>PSI:</strong> Population Stability Index<br>
+<strong>KS Test:</strong> Kolmogorov-Smirnov Test</p>
+</section>
+<section id="appendix-b-references" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-b-references">Appendix B: References</h2>
+<ul>
+<li>Business Understanding Document</li>
+<li>CRISP-DM Session Transcript</li>
+<li>AWS Documentation</li>
+<li>XGBoost Documentation</li>
+<li>Industry Best Practices</li>
+</ul>
+</section>
+<section id="appendix-c-document-version-history" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-c-document-version-history">Appendix C: Document Version History</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1.0</td>
+<td>2025-11-XX</td>
+<td>Data Science Team</td>
+<td>Initial design document</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Document Status:</strong> Draft<br>
+<strong>Next Review Date:</strong> TBD<br>
+<strong>Approval Required:</strong> Executive Sponsor, Technical Lead, Security Specialist</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
