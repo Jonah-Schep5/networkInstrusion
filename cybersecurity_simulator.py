@@ -188,6 +188,10 @@ if 'attack_counts' not in st.session_state:
     st.session_state.attack_counts = {'phishing': 0, 'zeroday': 0, 'itd': 0, 'apt': 0}
 if 'running' not in st.session_state:
     st.session_state.running = False
+if 'last_update' not in st.session_state:
+    st.session_state.last_update = time.time()
+if 'stream_index' not in st.session_state:
+    st.session_state.stream_index = 0
 
 # Title and description
 st.title("🛡️ Cybersecurity Network Intrusion Detection Simulator")
@@ -252,7 +256,8 @@ with col2:
     st.metric("💸 Operational Cost", f"${st.session_state.total_cost:,.0f}")
 with col3:
     net_benefit = st.session_state.total_saved - st.session_state.total_cost
-    st.metric("📈 Net Benefit", f"${net_benefit:,.0f}", delta=f"${net_benefit:,.0f}")
+    delta_color = "normal" if net_benefit >= 0 else "inverse"
+    st.metric("📈 Net Benefit", f"${net_benefit:,.0f}", delta=f"${net_benefit:,.0f}", delta_color=delta_color)
 with col4:
     st.metric("📅 Days Simulated", f"{st.session_state.current_day:.1f}")
 
@@ -273,7 +278,7 @@ detection_container = st.container()
 
 with detection_container:
     if st.session_state.detections:
-        recent_detections = st.session_state.detections[-10:][::-1]  # Last 10, reversed
+        recent_detections = st.session_state.detections[-2:][::-1]  # Last 10, reversed
         for detection in recent_detections:
             alert_type = detection['type'].upper()
             timestamp = detection['timestamp']
@@ -291,16 +296,8 @@ with detection_container:
     else:
         st.info("No attacks detected yet. Waiting for malicious traffic...")
 
-# Streaming simulation
-st.subheader("📊 Live Traffic Stream")
-stream_container = st.empty()
-
-# Chart for financial tracking
-chart_container = st.empty()
-
-# Process attack injection
+# Process attack injection first (before rendering charts)
 injected_attack = None
-injected_cost = 0
 
 if inject_phishing and len(attack_data['phishing']) > 0:
     injected_attack = ('phishing', attack_data['phishing'].sample(1).iloc[0], phishing_cost)
@@ -311,7 +308,7 @@ elif inject_itd and len(attack_data['itd']) > 0:
 elif inject_apt and len(attack_data['apt']) > 0:
     injected_attack = ('apt', attack_data['apt'].sample(1).iloc[0], apt_cost)
 
-# Simulation loop
+# Handle attack injection
 if injected_attack:
     attack_type, attack_row, attack_cost = injected_attack
 
@@ -345,34 +342,9 @@ if injected_attack:
     except Exception as e:
         st.error(f"Error processing attack: {e}")
 
-    st.rerun()
-
-# Simulate normal traffic streaming
-with stream_container:
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-
-    # Simulate a batch of traffic
-    batch_size = 100
-    for i in range(batch_size):
-        # Update operational costs
-        day_increment = days_per_second / batch_size
-        st.session_state.current_day += day_increment
-        st.session_state.total_cost = st.session_state.current_day * ops_cost_per_day
-        st.session_state.total_processed += 1
-
-        # Sample normal traffic (no need to run through model)
-        sample = normal_data.sample(1).iloc[0]
-
-        status_text.text(f"Processing traffic: {sample['source_ip']} → {sample['dest_ip']} | "
-                        f"{sample['protocol']} | {sample['service']} | Status: ✅ Normal")
-
-        progress_bar.progress((i + 1) / batch_size)
-        time.sleep(1.0 / batch_size / days_per_second)
-
-    status_text.text(f"Processed {st.session_state.total_processed:,} records | Day {st.session_state.current_day:.1f}")
-
 # Update chart
+st.subheader("📊 Financial Impact & Detection Timeline")
+
 if len(st.session_state.detections) > 0:
     detection_df = pd.DataFrame(st.session_state.detections)
     detection_df['cumulative_saved'] = detection_df['cost'].cumsum()
@@ -383,17 +355,21 @@ if len(st.session_state.detections) > 0:
         vertical_spacing=0.15
     )
 
-    # Financial chart
-    days = [0] + detection_df['timestamp'].tolist() + [st.session_state.current_day]
-    saved = [0] + detection_df['cumulative_saved'].tolist() + [detection_df['cumulative_saved'].iloc[-1]]
-    cost = [0] + [st.session_state.current_day * ops_cost_per_day / len(days)] * (len(days) - 2) + [st.session_state.total_cost]
+    # Financial chart - build time series for both lines
+    # Money saved line (steps at detection points, then flat)
+    saved_days = [0] + detection_df['timestamp'].tolist() + [st.session_state.current_day]
+    saved_amounts = [0] + detection_df['cumulative_saved'].tolist() + [detection_df['cumulative_saved'].iloc[-1]]
+
+    # Operational cost line (continuous linear growth)
+    cost_days = [0, st.session_state.current_day]
+    cost_amounts = [0, st.session_state.total_cost]
 
     fig.add_trace(
-        go.Scatter(x=days, y=saved, name="Money Saved", line=dict(color='green', width=3)),
+        go.Scatter(x=saved_days, y=saved_amounts, name="Money Saved", line=dict(color='green', width=3)),
         row=1, col=1
     )
     fig.add_trace(
-        go.Scatter(x=days, y=cost, name="Operational Cost", line=dict(color='red', width=3, dash='dash')),
+        go.Scatter(x=cost_days, y=cost_amounts, name="Operational Cost", line=dict(color='red', width=3, dash='dash')),
         row=1, col=1
     )
 
@@ -419,10 +395,39 @@ if len(st.session_state.detections) > 0:
     fig.update_yaxes(title_text="Cost Prevented ($)", row=2, col=1)
 
     fig.update_layout(height=700, showlegend=True)
+    st.plotly_chart(fig, use_container_width=True, key='financial_chart')
+else:
+    st.info("💡 No attacks detected yet. Inject attacks using the sidebar buttons to see financial impact.")
 
-    with chart_container:
-        st.plotly_chart(fig, use_container_width=True)
+# Streaming simulation (continuous updates)
+st.subheader("📊 Live Traffic Stream")
 
-# Auto-refresh
-time.sleep(0.1)
+# Update simulation state
+current_time = time.time()
+time_since_update = current_time - st.session_state.last_update
+
+# Increment day based on elapsed time
+days_elapsed = time_since_update * days_per_second
+st.session_state.current_day += days_elapsed
+st.session_state.total_cost = st.session_state.current_day * ops_cost_per_day
+st.session_state.last_update = current_time
+
+# Display current traffic sample
+sample = normal_data.sample(1).iloc[0]
+st.session_state.stream_index += 1
+
+col1, col2 = st.columns([3, 1])
+with col1:
+    st.code(f"[{st.session_state.stream_index:,}] {sample['source_ip']} → {sample['dest_ip']} | "
+            f"{sample['protocol']} | {sample['service']} | Port {sample['dest_port']} | ✅ Normal",
+            language=None)
+with col2:
+    st.metric("Records/sec", f"{days_per_second * 100:.0f}")
+
+# Progress indicator
+progress_value = (st.session_state.current_day % 1.0)
+st.progress(progress_value, text=f"Day {st.session_state.current_day:.2f} | Ops Cost: ${st.session_state.total_cost:,.0f}")
+
+# Auto-refresh for continuous streaming
+time.sleep(0.5)
 st.rerun()
